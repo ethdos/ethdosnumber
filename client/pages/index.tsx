@@ -1,28 +1,33 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { InjectedConnector } from 'wagmi/connectors/injected'
-import type { NextPage } from 'next';
-import { useAccount, useConnect, useDisconnect, useEnsAddress, useSignMessage } from 'wagmi'
-import Head from 'next/head';
-import styles from '../styles/Home.module.css';
-import { useState } from 'react';
-import { getAddress } from 'ethers/lib/utils';
-import { sign } from 'crypto';
-
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { InjectedConnector } from "wagmi/connectors/injected";
+import type { NextPage } from "next";
+import {
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useEnsAddress,
+  useSignMessage,
+} from "wagmi";
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import { useState } from "react";
+import { getAddress } from "ethers/lib/utils";
+import { sign } from "crypto";
 
 const Home: NextPage = () => {
-  const [friendAddr, setFriendAddr] = useState<string>('');
-  const [proof, setProof] = useState('');
+  const [friendAddr, setFriendAddr] = useState<string>("");
+  const [proof, setProof] = useState("");
   const { data, isError, isLoading } = useEnsAddress({
     name: friendAddr,
-  })
-  const ensValid = (!!data && !isError && !isLoading);
-  try{
+  });
+  const ensValid = !!data && !isError && !isLoading;
+  try {
     var rawValid = !!getAddress(friendAddr);
-  } catch(error) {
+  } catch (error) {
     var rawValid = false;
   }
   const isValid = ensValid || rawValid;
-  const correctAddr = !! rawValid ? rawValid : data;
+  const correctAddr = !!rawValid ? rawValid : data;
 
   const canSign = isValid;
   const isOriginator = canSign && !proof;
@@ -31,7 +36,7 @@ const Home: NextPage = () => {
 
   const signer = useSignMessage({
     message: signMessage,
-  })
+  });
 
   return (
     <div className={styles.container}>
@@ -47,24 +52,27 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <ConnectButton />
 
-        <h1 className={styles.title}>
-          EthDos
-        </h1>
+        <h1 className={styles.title}>EthDos</h1>
 
-        <textarea placeholder="Proof (or leave empty if you are originator)" value={proof} onChange={(e) => setProof(e.target.value)}/>
-        <input type="text" placeholder="0xADDRESS" value={friendAddr} onChange={(e) => setFriendAddr(e.target.value) }/>
+        <textarea
+          placeholder="Proof (or leave empty if you are originator)"
+          value={proof}
+          onChange={(e) => setProof(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="0xADDRESS"
+          value={friendAddr}
+          onChange={(e) => setFriendAddr(e.target.value)}
+        />
         <text>{isValid ? "Valid address" : "Invalid Address"}</text>
-        <button disabled={!canSign} onClick={() => signer.signMessage()}>Sign Message</button>
+        <button disabled={!canSign} onClick={() => signer.signMessage()}>
+          Sign Message
+        </button>
         <text>Sign Data: {signer.data}</text>
         <button>Generate Proof</button>
         <button>Mint NFT</button>
       </main>
-
-      <footer className={styles.footer}>
-        <a href="https://rainbow.me" target="_blank" rel="noopener noreferrer">
-          Made with ❤️ by your frens at
-        </a>
-      </footer>
     </div>
   );
 };
