@@ -51,7 +51,7 @@ const Home: NextPage = () => {
           EthDos
         </h1>
 
-        <textarea type="text" placeholder="Proof (or leave empty if you are originator)" value={proof} onChange={(e) => setProof(e.target.value)}/>
+        <textarea placeholder="Proof (or leave empty if you are originator)" value={proof} onChange={(e) => setProof(e.target.value)}/>
         <input type="text" placeholder="0xADDRESS" value={friendAddr} onChange={(e) => setFriendAddr(e.target.value) }/>
         <text>{isValid ? "Valid address" : "Invalid Address"}</text>
         <button disabled={!canSign} onClick={() => signer.signMessage()}>Sign Message</button>
