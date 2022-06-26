@@ -20,20 +20,17 @@ const Home: NextPage = () => {
 
             <div className="grid">
               <div className="mb-8">
-                <strong>What is this site?</strong>
+                <strong>What?</strong>
                 <div>
-                  <a href="https://ethdos.xyz">ETHdos </a>
-                  is an analogue to the Bacon Number for Ethereum.
-                  broadcast messages anonymously on Twitter. Using recursive
-                  zk-SNARKS, find the degrees of separation between Vitalik and you
-                  through your friends without leaking any information.
-                  <br />
-                  <em>Not even to the site admins.</em>
+                  Presenting ETHdos numbers: measuring degrees of separation of people (akin to Bacon/Erdos numbers) while hiding individual friendships entirely. This is the first of its kind social experiment using the composability of recursive zk snarks.
+                </div>
+                <div>
+                  ETHdos begins at a central person, lets say its “Vitalik”. Theyll start by sending proofs of friendship in the form of ZK SNARKs to their closest ones, and their friends will be able to continue the chain from there. Eventually, you’ll be able to prove that you are connected to Vitalik with N degrees of seperation BUT you will not be able to determinate the path of people to him, nor will anyone else in the world. This creates a fun social experiment which allows famous personalities to reveal very limited information about their social graphs, while others can prove their connections reputably and can even mint NFTs on-chain to brag about their proximity!
                 </div>
               </div>
 
               <div className="mb-8">
-                <strong>How to use?</strong>
+                <strong>Demo</strong>
                 <div>
                   <Link href="/send/paste">
                     <StepperHover>ETHdos number</StepperHover>
@@ -46,25 +43,20 @@ const Home: NextPage = () => {
               </div>
 
               <div className="mb-8">
-                <strong>How does it work?</strong>
+                <strong>How?</strong>
                 <div>
                 This project uses
                 <a href="https://z.cash/technology/zksnarks/">
                   {" "}recursive zk-snarks{" "}</a>
-                to make composable proofs between different people. Vitalik is degree 0
-                and he can use cryptography-magic to send signatures to his 
-                close friends which allow them to prove that they are degree 1
-                away from Vitalik. 
+                  to make composable proofs between different people. Using these proofs, you are able to generate the equivalent of Erdos/Bacon numbers but for peoples social graph.
                 <br/><br/>
-                Those degree-1 friends can send cryptographic proofs to their friends
-                and they can claim that they are degree-2 and so on. The craziest thing
-                is that since each propagation happens through zk, the path from
-                degree-0 to degree-k is hidden. This allows for a fun collector game
-                without having privacy concerns.
+                ZK SNARKs allow you to generate succinct proofs of knowledge that do not leak anything about the inputs to these proofs while proving assertions about these inputs. Recursive ZK SNARKs allow you to take this a step further and abuse the succinctness properties of SNARKs to create infinite chains of proofs that can be composably used with other private data (even from other parties) to generate larger proofs.
                 <br/><br/>
-                Users can also post these proves on chain to mint NFTs claiming that
-                they are degree-k close to Vitalik. Who wouldn't want an NFT saying that
-                you are almost besties with Vitalik :P
+                We realized that this is a really interesting primitive to base social experiments on. For instance, recursive ZK SNARKs could allow you to play the game of telephone/secret whispers in a decentralised environment. Building on this idea further, we came up with the idea of encoding the concept of degrees of seperation using a decentralised PKI such as Ethereum. While theoretically interesting, getting this idea to production involved a lot of practical work and hacky solutions. Going from beefy 256gb RAM servers to writing 25 million constraint SNARK circuits, we ended up exploring our understanding of everything from math to devops. Ultimately, we are able to demonstrate an exciting new idea and hope this will lead to other more interesting ones.
+                <br/><br/>
+                Users can also post these proofs on chain to mint NFTs claiming that
+                they are degree-k close to Vitalik. Who wouldnt want an NFT saying that
+                you are almost besties with Vitalik? :P
                 <br/><br/>
                 This allows for a fun social experiment where users would try to
                 have the lowest degree of separation by talking to their friends!
