@@ -8,7 +8,10 @@ import { useEffect, useState } from "react";
 import { Stepper, Title, Button } from "../../components/Base";
 import InfoRow from "../../components/InfoRow";
 import Slideover from "../../components/Slideover";
-import { checkProof } from "../../lib/generateProof";
+import { checkProof, fetchSolidityData } from "../../lib/generateProof";
+import { useContractWrite } from "wagmi";
+
+// const snarkjs = require("snarkjs");
 
 enum Stage {
   LOADING = "Loading proof from IPFS...",
@@ -60,6 +63,70 @@ const Share: NextPage = () => {
   //   }
   // };
 
+
+  const mintAbi = [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[2]",
+          "name": "a",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "uint256[2][2]",
+          "name": "b",
+          "type": "uint256[2][2]"
+        },
+        {
+          "internalType": "uint256[2]",
+          "name": "c",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "uint256[4]",
+          "name": "signals",
+          "type": "uint256[4]"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ];
+
+  // const getSolidityProofArray = (proof: any) => {
+  //   let proofList = [
+  //     proof["pi_a"][0],
+  //     proof["pi_a"][1],
+  //     proof["pi_b"][0][1],
+  //     proof["pi_b"][0][0],
+  //     proof["pi_b"][1][1],
+  //     proof["pi_b"][1][0],
+  //     proof["pi_c"][0],
+  //     proof["pi_c"][1],
+  //   ];
+  //   return proofList;
+  // };
+
+  // const solidityData = mintNftHelper(proof, pubInputs);
+  const solidityData = proof && pubInputs ? fetchSolidityData(proof, pubInputs) : [];
+  //snarkjs.groth16ExportSolidityCallData(proof, pubInputs);
+  const { data, isError, isLoading, write } = useContractWrite(
+    {
+      addressOrName: '0x2A0F14D7E66F1b7eFe53777C3655df66790eD795',
+      contractInterface: mintAbi,
+    },
+    'mint',
+    {
+      args: solidityData
+    }
+  );
+
+  console.log('data', data);
+  console.log('write', write);
+  console.log('lol');
+
   return (
     <>
       <div className="h-screen">
@@ -67,7 +134,7 @@ const Share: NextPage = () => {
           <title>ETHdos</title>
           <link rel="icon" href="/favicon.ico" />
           <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Mono" />
-          <script async src="snarkjs.min.js"></script>
+          {/* <script src="snarkjs.min.js"></script> */}
         </Head>
 
         <div className="flex h-full items-center justify-center text-white">
@@ -91,8 +158,8 @@ const Share: NextPage = () => {
                   <InfoRow
                     name="Share with others"
                     content={
-                      <a href={`http://ethdos.xyz/send/${ipfsHash}`}>
-                        ethdos.xyz/send/{ipfsHash}
+                      <a href={`http://ethdos.xyz/share/${ipfsHash}`}>
+                        ethdos.xyz/share/{ipfsHash}
                       </a>
                     }
                   />
@@ -101,7 +168,7 @@ const Share: NextPage = () => {
             </div>
             <div className="py-2">
               {stage === Stage.FINISHED && (
-                <Button className="mr-5">Mint NFT</Button>
+                <Button onClick={() => write()} className="mr-5">Mint NFT</Button>
               )}
             </div>
           </div>

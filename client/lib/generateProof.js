@@ -149,3 +149,17 @@ export const checkProof = async function (proof, publicSignals) {
   const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
   return res;
 };
+
+// export const mintNftHelper = async (proof, pubInputs) => {
+//   const data = await require(snarkjs).groth16ExportSolidityCallData(proof, pubInputs);
+//   return data;
+// }
+
+export const fetchSolidityData = (proof, pub) => {
+  const x = [
+    [intToHex(proof.pi_a[0]), intToHex(proof.pi_a[1])],
+    [[intToHex(proof.pi_b[0][1]), intToHex(proof.pi_b[0][0])], [intToHex(proof.pi_b[1][1]), intToHex(proof.pi_b[1][0])]],
+    [intToHex(proof.pi_c[0]), intToHex(proof.pi_c[1])],
+    pub.map((x) => intToHex(x)),
+  ]
+}

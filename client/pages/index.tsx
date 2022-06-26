@@ -10,7 +10,7 @@ const Home: NextPage = () => {
           <title>ETHdos</title>
           <link rel="icon" href="/public/favicon.ico" />
           <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Mono" />
-          <script async src="snarkjs.min.js"></script>
+          {/* <script src="/public/snarkjs.min.js"></script> */}
         </Head>
 
         <div className="flex h-full justify-center bg-heyanonred text-white">
