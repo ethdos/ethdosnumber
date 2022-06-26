@@ -27,8 +27,8 @@ const { chains, provider, webSocketProvider } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: 'RainbowKit App',
-  chains,
+  appName: 'ETHdos',
+  chains: [chain.optimism]
 });
 
 const wagmiClient = createClient({

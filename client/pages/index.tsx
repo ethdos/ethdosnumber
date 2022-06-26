@@ -1,5 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import Link from "next/link";
 import { StepperHover, Button, Title } from "../components/Base";
 
 const Home: NextPage = () => {
@@ -34,13 +35,13 @@ const Home: NextPage = () => {
               <div className="mb-8">
                 <strong>How to use?</strong>
                 <div>
-                  <a href="/send/paste">
+                  <Link href="/send/paste">
                     <StepperHover>ETHdos number</StepperHover>
-                  </a>
+                  </Link>
                   <br/>
-                  <a href="/share/QmZwz1zBDWSpU5vEJhanb2LixjxVaL4snXDVnFrX55ntgR">
+                  <Link href="/share/QmZwz1zBDWSpU5vEJhanb2LixjxVaL4snXDVnFrX55ntgR">
                     <Button>Example Proof</Button>
-                  </a>
+                  </Link>
                 </div>
               </div>
 
