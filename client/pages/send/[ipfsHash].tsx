@@ -309,7 +309,7 @@ const Send: NextPage = () => {
                                     type="button"
                                     className="mt-5"
                                   >
-                                    Change chain to Ethereum
+                                    Change chain to Optimism Mainnet
                                   </Button>
                                 )}
                               </div>
