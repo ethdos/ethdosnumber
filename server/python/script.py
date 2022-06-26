@@ -1,4 +1,5 @@
 
+from ast import arg
 from py_ecc.fields import (
     bn128_FQ as FQ,
     bn128_FQ2 as FQ2,
@@ -30,7 +31,22 @@ from py_ecc.bn128 import (
     bn128_pairing as pairingw
 )
 import json
-with open('fixtures/vkey-0.json', 'r') as vkey_file:
+import sys
+
+# get cli arg
+if len(sys.argv) != 2:
+    print("Usage: python3 script.py <input_file>")
+    exit(1)
+
+input_filename = sys.argv[1]
+with open("../preinput/" + input_filename, 'r') as input_file:
+    input_data = input_file.read()
+input_json = json.loads(input_data)
+proof = input_json["proof"]
+pubInputs = input_json["pubInputs"]
+
+
+with open('vkey.json', 'r') as vkey_file:
     vkey_data = vkey_file.read()
 vkey = json.loads(vkey_data)
 
@@ -91,9 +107,9 @@ inputParameters = {
 
 print("inputParameters", inputParameters)
 
-with open('fixtures/proof-0.json', 'r') as proof_file:
-    proof_data = proof_file.read()
-proof = json.loads(proof_data)
+# with open('proof.json', 'r') as proof_file:
+#     proof_data = proof_file.read()
+# proof = json.loads(proof_data)
 
 x, y, z = tuple([FQ((int(x))) for x in proof["pi_a"]]) 
 negpi_a = (x / z, - (y / z))
@@ -112,20 +128,25 @@ proofParameters = {
 
 print("proofParameters", proofParameters)
 
-with open('fixtures/public-0.json', 'r') as public_file:
-    public_data = public_file.read()
-pubInputs = json.loads(public_data)
+# with open('public.json', 'r') as public_file:
+#     public_data = public_file.read()
+# pubInputs = json.loads(public_data)
 
-pubParameters  = {
-    "pubInput": [],
-}
-for pubInput in pubInputs:
-    pubParameters["pubInput"].append(int(pubInput))
+# pubParameters  = {
+#     "pubInput": [],
+# }
+# for pubInput in pubInputs:
+#     pubParameters["pubInput"].append(int(pubInput))
 
-print("pubParameters", pubParameters)
+# print("pubParameters", pubParameters)
 
-fullCircomInput = {**inputParameters, **proofParameters, **pubParameters}
+fullCircomInput = {**inputParameters, **proofParameters}
 
-with open('fixtures/full-circom-input-0.json', 'w') as outfile:
+fullCircomInput["semiPublicCommitment"] = "7138597452374049843442357986628673314690363139209617000292486089713270058062"
+fullCircomInput["degree"] = int(pubParameters[1]) + 1
+fullCircomInput["originator"] = pubParameters[2]
+
+
+with open('../input/' + input_filename, 'w') as outfile:
     json.dump(fullCircomInput, outfile)
 

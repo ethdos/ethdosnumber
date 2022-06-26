@@ -35,10 +35,10 @@ const inQueue = (hash) => {
 
 const startNewProcess = (hash) => {
   if (!!outputData[hash]) return;
-  const inputFileName = `inputs/${hash}.json`;
-  const witnessFileName = `inputs/${hash}.wtns`;
-  const publicName = `public_${hash}.json`;
-  const proofName = `proof_${hash}.json`;
+  // const inputFileName = `preinput/${hash}.json`;
+  // const witnessFileName = `inputs/${hash}.wtns`;
+  // const publicName = `public_${hash}.json`;
+  // const proofName = `proof_${hash}.json`;
   // spawn a child process to run the proof generation
   const prover = spawn("sh", ["exec.sh", hash], {
     timeout: 60 * 60 * 1000,
@@ -48,30 +48,30 @@ const startNewProcess = (hash) => {
     return false;
   }
   currentProcessesRunning.add(hash);
-  prover.stdout.on("data", (data) => {
+  prover.stderr.on("data", (data) => {
     var res = data.toString();
     if (res.substring(0,8) === "{\"pi_a\":") {
         outputData[hash] = res;
         // delete the relevant files in inputs folder
-        fs.unlinkSync(inputFileName);
-        fs.unlinkSync(witnessFileName);
-        fs.unlinkSync(publicName);
-        fs.unlinkSync(proofName);
+        // fs.unlinkSync(inputFileName);
+        // fs.unlinkSync(witnessFileName);
+        // fs.unlinkSync(publicName);
+        // fs.unlinkSync(proofName);
     } else {
-        outputData[hash] = '{\"result\": \"BLS signature verification failed.\"}';
+        outputData[hash] = '{\"result\": \"Proof verification failed.\"}';
     }
     currentProcessesRunning.delete(hash);
     processQueue();
     prover.kill();
   });
 
-  prover.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-    outputData[hash] = '{\"result\": \"BLS signature verification failed.\"}';
-    currentProcessesRunning.delete(hash);
-    processQueue();
-    prover.kill();
-  });
+  // prover.stdout.on("data", (data) => {
+  //   console.error(`stderr: ${data}`);
+  //   outputData[hash] = '{\"result\": \"Proof verification failed.\"}';
+  //   currentProcessesRunning.delete(hash);
+  //   processQueue();
+  //   prover.kill();
+  // });
 
   prover.on("close", (code) => {
     currentProcessesRunning.delete(hash);
@@ -104,7 +104,7 @@ const processQueue = () => {
 app.post("/generate_proof", function (req, res) {
   const input = req.body;
   const inputHash = hash(input);
-  const inputFileName = `inputs/${inputHash}.json`;
+  const inputFileName = `preinput/${inputHash}.json`;
   console.log("input", input);
   console.log("inputFileName", inputFileName);
 
