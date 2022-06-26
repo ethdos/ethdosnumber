@@ -1,8 +1,6 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
-import dynamic from "next/dynamic";
-const DynamicReactJson = dynamic(import("react-json-view"), { ssr: false });
 
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -26,9 +24,6 @@ const Share: NextPage = () => {
   const [proof, setProof] = useState(null);
   const [pubInputs, setPubInputs] = useState(null);
 
-  const [slideoverOpen, setSlideoverOpen] = useState<boolean>(false);
-  const [slideoverContent, setSlideoverContent] = useState<any | null>(null);
-  const [slideoverTitle, setSlideoverTitle] = useState<string>("");
   const [verifyStatus, setVerifyStatus] = useState<string>("Verify proof");
 
   useEffect(() => {
@@ -50,12 +45,6 @@ const Share: NextPage = () => {
       getHash();
     }
   }, [ipfsHash]);
-
-  const openSlideOver = (slideoverContent: any, title: string) => {
-    setSlideoverTitle(title);
-    setSlideoverContent(slideoverContent);
-    setSlideoverOpen(true);
-  };
 
   // const verifyProofInBrowser = async () => {
   //   setVerifyStatus("Verifying...");
@@ -79,21 +68,6 @@ const Share: NextPage = () => {
           <link rel="icon" href="/favicon.ico" />
           <script async src="snarkjs.min.js"></script>
         </Head>
-
-        <Slideover
-          open={slideoverOpen}
-          setOpen={setSlideoverOpen}
-          title={slideoverTitle}
-        >
-          {slideoverContent && (
-            <DynamicReactJson
-              src={slideoverContent}
-              name={null}
-              indentWidth={2}
-              displayDataTypes={false}
-            />
-          )}
-        </Slideover>
 
         <div className="flex h-full items-center justify-center text-white">
           <div className="w-1/2">
@@ -119,17 +93,6 @@ const Share: NextPage = () => {
                       <a href={`http://ethdos.xyz/send/${ipfsHash}`}>
                         ethdos.xyz/send/{ipfsHash}
                       </a>
-                    }
-                  />
-                  <InfoRow
-                    name="ZK Proof"
-                    content={
-                      <span
-                        onClick={() => openSlideOver(proof, "ZK Proof")}
-                        className="hover:cursor-pointer hover:text-terminal-green"
-                      >
-                        Click to view
-                      </span>
                     }
                   />
                 </>
