@@ -133,6 +133,7 @@ export function generateProofInputs(
     proof: originProofJson,
     pubInputs: originPubInputs,
   };
+  console.log(input);
   return input;
 }
 
