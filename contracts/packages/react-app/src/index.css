@@ -1,0 +1,30 @@
+@import url('https://rsms.me/inter/inter.css');
+
+html { font-family: 'Inter', sans-serif; }
+@supports (font-variation-settings: normal) {
+  html { font-family: 'Inter var', sans-serif; }
+}
+
+body {
+  margin: 0;
+}
+
+.background-image {
+  background-image: linear-gradient(to right, #fc466b, #3f5efb);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center center;
+  filter: blur(30px);
+  z-index: -10;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  transform: scale(1.1);
+}
+
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
