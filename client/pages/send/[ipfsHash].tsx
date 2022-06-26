@@ -18,15 +18,16 @@ enum Stage {
   PASTEPROOF = "Paste in your proof...",
   ADDRESS = "Choose an address or ENS name to send to...",
   GENERATING = "Generating...",
+  ERROR = "Error on server, retry later :(",
   FINISHED = "Finished!",
 }
 
-const backendUrl = "https://backend.stealthdrop.xyz/";
-// http://localhost:3001/"; // http://45.76.66.251/
+const backendUrl = "https://backend.ethdos.xyz/";
 
 const Send: NextPage = () => {
   const router = useRouter();
   const { ipfsHash } = router.query;
+  const [stage, setStage] = useState<Stage>(Stage.LOADING);
 
   const [originalProof, setOriginalProof] = useState(null);
   const [validOriginalProof, setValidOriginalProof] = useState(false);
@@ -34,19 +35,34 @@ const Send: NextPage = () => {
 
   const [proof, setProof] = useState(null);
   const [publicSignals, setPublicSignals] = useState(null);
-  const [proofStatus, setProofStatus] = useState("GENERATE");
 
-  const [stage, setStage] = useState<Stage>(Stage.LOADING);
-  const [sourceAddress, setSourceAddress] = useState<string>(
-    "0x7162C2F74a1b968aa33E3DCFd15366264E9eC53c"
-  );
+  const [sourceAddress, setSourceAddress] = useState<string>("");
   const [sinkAddress, setSinkAddress] = useState<string>("");
 
+  const [sinkIpfsHash, setSinkIpfsHash] = useState<string>("");
+
+  const { data, isError, isLoading } = useEnsAddress({
+    name: sinkAddress,
+  });
+  const ensValid = !!data && !isError && !isLoading;
+  try {
+    var rawValid: string | undefined = getAddress(sinkAddress);
+  } catch (error) {
+    var rawValid: string | undefined = undefined;
+  }
+  const validAddress = ensValid || rawValid;
+  const correctAddr = !!rawValid ? rawValid : data;
+  const signMessage = (correctAddr + "").toLowerCase();
+  const signer = useSignMessage({
+    message: signMessage,
+  });
+
+  // generate ZK proof given original proof and sink address
   const generateZKProof = async () => {
-    setProofStatus("Assembling proof");
     const inputs = generateProofInputs(
       originalProof,
-      sinkAddress,
+      originalPublicSignals,
+      correctAddr,
       signer.data,
       signMessage
     );
@@ -57,43 +73,55 @@ const Send: NextPage = () => {
     // send api post request to generate proof
     const returnData = await postData(backendUrl + "generate_proof", inputs);
     if (!returnData.ok) {
-      alert("Error generating proof, please try again later");
+      setStage(Stage.ERROR);
       return;
     }
     const returnJSON = await returnData.json();
-    setProofStatus(returnJSON && returnJSON["id"] ? "Computing" : "Error");
+    if (!(returnJSON && returnJSON["id"])) {
+      setStage(Stage.ERROR);
+      return;
+    }
+
     const processId = returnJSON["id"];
     console.log("processId", processId);
-
     const intervalId = setInterval(async () => {
       const res = await postData(backendUrl + "result", { id: processId });
       if (res.status === 200) {
         const json = await res.json();
-        if (!json) {
+        console.log("json", json);
+        if (!json || "result" in json) {
           console.log("error", res);
           clearInterval(intervalId);
-          setProofStatus("ERROR: SERVER LOAD HIGH, RETRY LATER!");
+          setStage(Stage.ERROR);
         } else {
           setProof(json);
           clearInterval(intervalId);
-          setProofStatus("Generated!");
+          const resp = await fetch("/api/storeproof", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              proof,
+              pubInputs: publicSignals,
+            }),
+          });
+          const respData = await resp.json();
+          setSinkIpfsHash(respData["ipfsHash"]);
+          setStage(Stage.FINISHED);
         }
-      } else if (res.status === 400) {
-        setProofStatus("Loading");
       } else {
         console.log("error", res);
         clearInterval(intervalId);
-        setProofStatus("ERROR: SERVER LOAD HIGH, RETRY LATER!");
+        setStage(Stage.ERROR);
       }
     }, 10000);
   };
 
   const updateOriginalProof = (data: any) => {
     setOriginalProof(data.proof);
-    setOriginalPublicSignals(data.publicSignals);
-    setSourceAddress(
-      "0x" + BigInt(data.publicSignals.slice(-1)[0]).toString(16)
-    );
+    setOriginalPublicSignals(data.pubInputs);
+    setSourceAddress("0x" + BigInt(data.pubInputs.slice(-1)[0]).toString(16));
   };
 
   useEffect(() => {
@@ -118,21 +146,6 @@ const Send: NextPage = () => {
     }
   }, [ipfsHash]);
 
-  const { data, isError, isLoading } = useEnsAddress({
-    name: sinkAddress,
-  });
-  const ensValid = !!data && !isError && !isLoading;
-  try {
-    var rawValid = !!getAddress(sinkAddress);
-  } catch (error) {
-    var rawValid = false;
-  }
-  const validAddress = ensValid || rawValid;
-  const correctAddr = !!rawValid ? rawValid : data;
-  const signMessage = (correctAddr + "").toLowerCase();
-  const signer = useSignMessage({
-    message: signMessage,
-  });
   if (stage == Stage.ADDRESS && signer.isSuccess) {
     setStage(Stage.GENERATING);
     generateZKProof();
@@ -169,7 +182,8 @@ const Send: NextPage = () => {
                         const pasteProof = JSON.parse(e.target.value);
                         updateOriginalProof(pasteProof);
                         setValidOriginalProof(true);
-                      } catch {
+                      } catch (error) {
+                        console.log(error);
                         setValidOriginalProof(false);
                       }
                     }}
@@ -279,9 +293,31 @@ const Send: NextPage = () => {
                 </>
               )}
 
-              {stage === Stage.GENERATING && (
+              {stage === Stage.GENERATING && <LoadingText />}
+              {stage === Stage.ERROR && <Title>{stage}</Title>}
+              {stage === Stage.FINISHED && (
                 <>
-                  <LoadingText currentStage={proofStatus} />
+                  <Title>{stage}</Title>
+                  <InfoRow
+                    name="Originator"
+                    content={
+                      "0x" + BigInt(originalPublicSignals![2]).toString(16)
+                    }
+                  />
+                  <InfoRow
+                    name="Distance of your receipient"
+                    content={(
+                      parseInt(originalPublicSignals![1]) + 1
+                    ).toString()}
+                  />
+                  <InfoRow
+                    name="Link"
+                    content={
+                      <a href={`http://ethdos.xyz/share/${sinkIpfsHash}`}>
+                        http://ethdos.xyz/share/{sinkIpfsHash}
+                      </a>
+                    }
+                  />
                 </>
               )}
             </div>
