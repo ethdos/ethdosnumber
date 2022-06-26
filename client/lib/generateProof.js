@@ -3,11 +3,12 @@ import { mimcHash } from "./mimc";
 import bigInt from "big-integer";
 import { ethers } from "ethers";
 
-const fromHexString = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+const fromHexString = (hexString) =>
+  new Uint8Array(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
-const intToHex = intString => ethers.BigNumber.from(intString).toHexString();
+const intToHex = (intString) => ethers.BigNumber.from(intString).toHexString();
 
-export const hexStringTobigInt = hexString => {
+export const hexStringTobigInt = (hexString) => {
   return Uint8Array_to_bigint(fromHexString(hexString));
 };
 
@@ -74,21 +75,14 @@ function bigint_to_array(n, k, x) {
   return ret;
 }
 
-export const fetchSolidityData = (proof, pub) => {
-  const x = [
-    [intToHex(proof.pi_a[0]), intToHex(proof.pi_a[1])],
-    [[intToHex(proof.pi_b[0][1]), intToHex(proof.pi_b[0][0])], [intToHex(proof.pi_b[1][1]), intToHex(proof.pi_b[1][0])]],
-    [intToHex(proof.pi_c[0]), intToHex(proof.pi_c[1])],
-    pub.map((x) => intToHex(x)),
-  ]
-  return x;
-}
-
 const getPublicKey = (signatureString, signText) => {
   const msgHash = ethers.utils.hashMessage(signText);
-  const publicKey = ethers.utils.recoverPublicKey(msgHash, ethers.utils.arrayify(signatureString));
+  const publicKey = ethers.utils.recoverPublicKey(
+    msgHash,
+    ethers.utils.arrayify(signatureString)
+  );
   return publicKey;
-}
+};
 
 function parsePubkey(pk) {
   const sliced_pk = pk.slice(4);
@@ -115,32 +109,58 @@ function parseSignature(sig) {
   return [r_array, s_array];
 }
 
-export function generateProofInputs(originProofJson, friendAddress, signatueString, signText) {
-  console.log("signature", signature);
+export function generateProofInputs(
+  originProofJson,
+  originPubInputs,
+  friendAddress,
+  signatueString,
+  signText
+) {
+  console.log("originProofJson", originProofJson);
   const [r_array, s_array] = parseSignature(signatueString);
-  proverPubkey = getPublicKey(signatueString, signText);
+  const proverPubkey = getPublicKey(signatueString, signText);
   const [pubkey_x, pubkey_y] = parsePubkey(proverPubkey);
 
   const friendAddressBigInt = hexStringTobigInt(friendAddress);
   const input = {
-    r: r_array.map(x => x.toString()),
-    s: s_array.map(x => x.toString()),
-    sourcePubkey: [pubkey_x.map(x => x.toString()), pubkey_y.map(x => x.toString())],
+    r: r_array.map((x) => x.toString()),
+    s: s_array.map((x) => x.toString()),
+    sourcePubkey: [
+      pubkey_x.map((x) => x.toString()),
+      pubkey_y.map((x) => x.toString()),
+    ],
     sinkAddress: friendAddressBigInt.toString(),
-    ...originProofJson,
+    proof: originProofJson,
+    pubInputs: originPubInputs,
   };
+  console.log(input);
   return input;
 }
 
 export const getVerificationKey = async () => {
-  return await fetch("./verification_key.json").then(function(res) {
+  return await fetch("./verification_key.json").then(function (res) {
     return res.json();
   });
-}
+};
 
 export const checkProof = async function (proof, publicSignals) {
   const vKey = await getVerificationKey();
 
   const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
   return res;
+};
+
+// export const mintNftHelper = async (proof, pubInputs) => {
+//   const data = await require(snarkjs).groth16ExportSolidityCallData(proof, pubInputs);
+//   return data;
+// }
+
+export const fetchSolidityData = (proof, pub) => {
+  const x = [
+    [intToHex(proof.pi_a[0]), intToHex(proof.pi_a[1])],
+    [[intToHex(proof.pi_b[0][1]), intToHex(proof.pi_b[0][0])], [intToHex(proof.pi_b[1][1]), intToHex(proof.pi_b[1][0])]],
+    [intToHex(proof.pi_c[0]), intToHex(proof.pi_c[1])],
+    pub.map((x) => intToHex(x)),
+  ]
+  return x;
 }
