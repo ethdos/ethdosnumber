@@ -13,7 +13,7 @@ import LoadingText from "../../components/LoadingText";
 import InfoRow from "../../components/InfoRow";
 
 enum Stage {
-  LOADING = "Loading proof from IPFS...",
+  LOADING = "Loading...",
   INVALID = "Invalid IPFS hash :(",
   PASTEPROOF = "Paste in your proof...",
   ADDRESS = "Choose an address or ENS name to send to...",
@@ -31,10 +31,10 @@ const Send: NextPage = () => {
 
   const [originalProof, setOriginalProof] = useState(null);
   const [validOriginalProof, setValidOriginalProof] = useState(false);
-  const [originalPublicSignals, setOriginalPublicSignals] = useState(null);
+  const [originalPubInputs, setOriginalPubInputs] = useState(null);
 
   const [proof, setProof] = useState(null);
-  const [publicSignals, setPublicSignals] = useState(null);
+  const [pubInputs, setPubInputs] = useState(null);
 
   const [sourceAddress, setSourceAddress] = useState<string>("");
   const [sinkAddress, setSinkAddress] = useState<string>("");
@@ -61,7 +61,7 @@ const Send: NextPage = () => {
   const generateZKProof = async () => {
     const inputs = generateProofInputs(
       originalProof,
-      originalPublicSignals,
+      originalPubInputs,
       correctAddr,
       signer.data,
       signMessage
@@ -90,9 +90,14 @@ const Send: NextPage = () => {
         const json = await res.json();
         console.log("json", json);
         if (!json || "result" in json) {
-          console.log("error", res);
-          clearInterval(intervalId);
-          setStage(Stage.ERROR);
+          if (
+            json["result"].includes("failed") &&
+            json["result"].includes("ERROR")
+          ) {
+            console.log("error", res);
+            clearInterval(intervalId);
+            setStage(Stage.ERROR);
+          }
         } else {
           setProof(json);
           clearInterval(intervalId);
@@ -103,7 +108,7 @@ const Send: NextPage = () => {
             },
             body: JSON.stringify({
               proof,
-              pubInputs: publicSignals,
+              pubInputs,
             }),
           });
           const respData = await resp.json();
@@ -120,7 +125,7 @@ const Send: NextPage = () => {
 
   const updateOriginalProof = (data: any) => {
     setOriginalProof(data.proof);
-    setOriginalPublicSignals(data.pubInputs);
+    setOriginalPubInputs(data.pubInputs);
     setSourceAddress("0x" + BigInt(data.pubInputs.slice(-1)[0]).toString(16));
   };
 
@@ -165,10 +170,8 @@ const Send: NextPage = () => {
             <Stepper>ETHdos number</Stepper>
 
             <div className="my-5">
-              {stage === Stage.LOADING && <Title>{`Loading...`}</Title>}
-              {stage === Stage.INVALID && (
-                <Title>{`Invalid IPFS hash :(`}</Title>
-              )}
+              {stage === Stage.LOADING && <Title>{stage}</Title>}
+              {stage === Stage.INVALID && <Title>{stage}</Title>}
               {stage === Stage.PASTEPROOF && (
                 <>
                   <textarea
@@ -201,13 +204,11 @@ const Send: NextPage = () => {
                 <>
                   <InfoRow
                     name="Originator"
-                    content={
-                      "0x" + BigInt(originalPublicSignals![2]).toString(16)
-                    }
+                    content={"0x" + BigInt(originalPubInputs![2]).toString(16)}
                   />
                   <InfoRow
                     name="Your distance"
-                    content={originalPublicSignals![1]}
+                    content={originalPubInputs![1]}
                   />
                   <textarea
                     rows={1}
@@ -300,15 +301,11 @@ const Send: NextPage = () => {
                   <Title>{stage}</Title>
                   <InfoRow
                     name="Originator"
-                    content={
-                      "0x" + BigInt(originalPublicSignals![2]).toString(16)
-                    }
+                    content={"0x" + BigInt(originalPubInputs![2]).toString(16)}
                   />
                   <InfoRow
                     name="Distance of your receipient"
-                    content={(
-                      parseInt(originalPublicSignals![1]) + 1
-                    ).toString()}
+                    content={(parseInt(originalPubInputs![1]) + 1).toString()}
                   />
                   <InfoRow
                     name="Link"

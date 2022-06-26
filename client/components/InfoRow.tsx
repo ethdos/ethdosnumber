@@ -9,7 +9,7 @@ export default function InfoRow({ name, content, color }: Props) {
   if (color) className = className += color;
 
   return (
-    <div>
+    <div className="my-1">
       <span className={className}>{name}: </span>
       <span> {content} </span>
     </div>
