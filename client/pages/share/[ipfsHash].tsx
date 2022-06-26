@@ -16,12 +16,12 @@ const Share: NextPage = () => {
   });
   const ensValid = !!data && !isError && !isLoading;
   try {
-    var rawValid = !!getAddress(friendAddr);
+    var rawAddress : string | undefined = getAddress(friendAddr);
   } catch (error) {
-    var rawValid = false;
+    var rawAddress : string | undefined = undefined;
   }
-  const isValid = ensValid || rawValid;
-  const correctAddr = !!rawValid ? rawValid : data;
+  const isValid = ensValid || rawAddress;
+  const correctAddr = !!rawAddress ? rawAddress : data;
 
   const canSign = isValid;
   const isOriginator = canSign && !proof;

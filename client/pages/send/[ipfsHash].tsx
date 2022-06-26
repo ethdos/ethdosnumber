@@ -12,12 +12,17 @@ import Head from "next/head";
 import { useState } from "react";
 import { getAddress } from "ethers/lib/utils";
 import { sign } from "crypto";
-
+import { generateProofInputs, postData } from "../../lib/generateProof";
 import { Stepper, Title, Button } from "../../components/Base";
+
+const backendUrl = "https://backend.stealthdrop.xyz/";
+// http://localhost:3001/"; // http://45.76.66.251/
 
 const Send: NextPage = () => {
   const [friendAddr, setFriendAddr] = useState<string>("");
-  const [proof, setProof] = useState("");
+  const [originalProof, setOriginalProof] = useState<string>("");
+  const [proof, setProof] = useState<string | undefined>();
+  const [proofStatus, setProofStatus] = useState("GENERATE");
   const { data, isError, isLoading } = useEnsAddress({
     name: friendAddr,
   });
@@ -38,6 +43,52 @@ const Send: NextPage = () => {
   const signer = useSignMessage({
     message: signMessage,
   });
+
+const generateZKProof = async () => {
+  setProofStatus("ASSEMBLING");
+  const originalProofJson = JSON.parse(originalProof);
+  const inputs = await generateProofInputs(
+    originalProofJson,
+    friendAddr,
+    signer.data,
+    signMessage,
+  );
+  console.log("inputs", inputs);
+  console.log("stringify'd inputs", JSON.stringify(inputs));
+  if (!inputs) return;
+  // send api post request to generate proof
+  const returnData = await postData(backendUrl + "generate_proof", inputs);
+  if (!returnData.ok) {
+    alert("Error generating proof, please try again later");
+    return;
+  }
+  const returnJSON = await returnData.json();
+  setProofStatus(returnJSON && returnJSON["id"] ? "LOADING" : "ERROR!");
+  const processId = returnJSON["id"];
+  console.log("processId", processId);
+
+  const intervalId = setInterval(async () => {
+    const res = await postData(backendUrl + "result", { id: processId });
+    if (res.status === 200) {
+      const json = await res.json();
+      if (!json) {
+        console.log("error", res);
+        clearInterval(intervalId);
+        setProofStatus("ERROR: SERVER LOAD HIGH, RETRY LATER!");
+      } else {
+        setProof(json);
+        clearInterval(intervalId);
+        setProofStatus("GENERATED");
+      }
+    } else if (res.status === 400) {
+      setProofStatus("LOADING");
+    } else {
+      console.log("error", res);
+      clearInterval(intervalId);
+      setProofStatus("ERROR: SERVER LOAD HIGH, RETRY LATER!");
+    }
+  }, 10000);
+};
 
   return (
     <>
@@ -65,8 +116,8 @@ const Send: NextPage = () => {
                   id="comment"
                   className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5"
                   placeholder={"Enter tweet..."}
-                  value={proof}
-                  onChange={(e) => setProof(e.target.value)}
+                  value={originalProof}
+                  onChange={(e) => setOriginalProof(e.target.value)}
                 />
               </div>
               <input
@@ -80,7 +131,7 @@ const Send: NextPage = () => {
                 Sign Message
               </Button>
               <text>Sign Data: {signer.data}</text>
-              <Button>Generate Proof</Button>
+              <Button disabled={isValid} onClick={generateZKProof}>{proofStatus}</Button>
               <Button>Mint NFT</Button>
             </div>
           </div>
