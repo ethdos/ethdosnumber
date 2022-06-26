@@ -7,7 +7,11 @@ import { useRouter } from "next/router";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEnsAddress, useSignMessage } from "wagmi";
 import { getAddress } from "ethers/lib/utils";
-import { generateProofInputs, postData } from "../../lib/generateProof";
+import {
+  generateProofInputs,
+  hexStringTobigInt,
+  postData,
+} from "../../lib/generateProof";
 import { Stepper, Title, Button } from "../../components/Base";
 import LoadingText from "../../components/LoadingText";
 import InfoRow from "../../components/InfoRow";
@@ -32,7 +36,9 @@ const Send: NextPage = () => {
 
   const [originalProof, setOriginalProof] = useState(null);
   const [validOriginalProof, setValidOriginalProof] = useState(false);
-  const [originalPubInputs, setOriginalPubInputs] = useState(null);
+  const [originalPubInputs, setOriginalPubInputs] = useState<null | string[]>(
+    null
+  );
   const [originator, setOriginator] = useState<string>("");
   const [degree, setDegree] = useState<number>(0);
 
@@ -70,7 +76,6 @@ const Send: NextPage = () => {
       signMessage
     );
     console.log("inputs", inputs);
-    console.log("stringify'd inputs", JSON.stringify(inputs));
     if (!inputs) return;
 
     // send api post request to generate proof
@@ -162,7 +167,7 @@ const Send: NextPage = () => {
     }
   }, [ipfsHash]);
 
-  if (stage == Stage.ADDRESS && signer.isSuccess) {
+  if ((stage == Stage.ADDRESS || stage === Stage.ORIGIN) && signer.isSuccess) {
     setStage(Stage.GENERATING);
     generateZKProof();
   }
@@ -215,8 +220,8 @@ const Send: NextPage = () => {
                 <>
                   <textarea
                     rows={1}
-                    name="address"
-                    id="address"
+                    name="originaddress"
+                    id="originaddress"
                     className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5 mt-5"
                     placeholder={stage}
                     value={sinkAddress}
@@ -273,17 +278,27 @@ const Send: NextPage = () => {
                                       type="button"
                                       className="mt-5 mr-5"
                                     >
-                                      Change address
+                                      Change origin address
                                     </Button>
                                     <Button
                                       disabled={!validAddress}
                                       onClick={() => {
+                                        setOriginalPubInputs([
+                                          "0",
+                                          "0",
+                                          hexStringTobigInt(
+                                            account.address
+                                          ).toString(),
+                                          hexStringTobigInt(
+                                            account.address
+                                          ).toString(),
+                                        ]);
                                         signer.signMessage();
                                       }}
                                       className="disabled:opacity-50 mt-5"
                                     >
                                       {validAddress
-                                        ? `Sign address with ${account.address} & generate proof!`
+                                        ? `Sign address & generate proof!`
                                         : "Enter a valid address..."}
                                     </Button>
                                   </>
