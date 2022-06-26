@@ -66,6 +66,7 @@ const Share: NextPage = () => {
         <Head>
           <title>ETHdos</title>
           <link rel="icon" href="/favicon.ico" />
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Mono" />
           <script async src="snarkjs.min.js"></script>
         </Head>
 
