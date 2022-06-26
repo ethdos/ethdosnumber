@@ -33,7 +33,7 @@ const Share: NextPage = () => {
   useEffect(() => {
     async function getHash() {
       const resp = await fetch(`/api/getproof/${ipfsHash}`);
-      const respData = await resp.json();
+      const respData = JSON.parse(await resp.json());
 
       if (!resp.ok) {
         setStage(Stage.INVALID);
