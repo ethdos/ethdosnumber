@@ -5,7 +5,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useEnsName, useEnsAddress, useSignMessage } from "wagmi";
+import { useEnsAddress, useSignMessage } from "wagmi";
 import { getAddress } from "ethers/lib/utils";
 import { generateProofInputs, postData } from "../../lib/generateProof";
 import { Stepper, Title, Button } from "../../components/Base";
@@ -17,6 +17,7 @@ enum Stage {
   INVALID = "Invalid IPFS hash :(",
   PASTEPROOF = "Paste in your proof...",
   ADDRESS = "Choose an address or ENS name to send to...",
+  ORIGIN = "You are the origin! Choose an address or ENS name to send to...",
   GENERATING = "Generating...",
   ERROR = "Error on server, retry later :(",
   FINISHED = "Finished!",
@@ -32,6 +33,8 @@ const Send: NextPage = () => {
   const [originalProof, setOriginalProof] = useState(null);
   const [validOriginalProof, setValidOriginalProof] = useState(false);
   const [originalPubInputs, setOriginalPubInputs] = useState(null);
+  const [originator, setOriginator] = useState<string>("");
+  const [degree, setDegree] = useState<number>(0);
 
   const [proof, setProof] = useState(null);
   const [pubInputs, setPubInputs] = useState(null);
@@ -99,7 +102,8 @@ const Send: NextPage = () => {
             setStage(Stage.ERROR);
           }
         } else {
-          setProof(json);
+          setProof(json.proof);
+          setPubInputs(json.pubInputs);
           clearInterval(intervalId);
           const resp = await fetch("/api/storeproof", {
             method: "POST",
@@ -126,11 +130,18 @@ const Send: NextPage = () => {
   const updateOriginalProof = (data: any) => {
     setOriginalProof(data.proof);
     setOriginalPubInputs(data.pubInputs);
+    setOriginator("0x" + BigInt(data.pubInputs![2]).toString(16));
+    setDegree(parseInt(data.pubInputs![1]));
     setSourceAddress("0x" + BigInt(data.pubInputs.slice(-1)[0]).toString(16));
   };
 
   useEffect(() => {
     async function getHash() {
+      if (ipfsHash === "origin") {
+        setStage(Stage.ORIGIN);
+        return;
+      }
+
       if (ipfsHash === "paste") {
         setStage(Stage.PASTEPROOF);
         return;
@@ -200,16 +211,104 @@ const Send: NextPage = () => {
                   </Button>
                 </>
               )}
+              {stage === Stage.ORIGIN && (
+                <>
+                  <textarea
+                    rows={1}
+                    name="address"
+                    id="address"
+                    className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5 mt-5"
+                    placeholder={stage}
+                    value={sinkAddress}
+                    onChange={(e) => setSinkAddress(e.target.value)}
+                  />
+
+                  <ConnectButton.Custom>
+                    {({
+                      account,
+                      chain,
+                      openAccountModal,
+                      openChainModal,
+                      openConnectModal,
+                      mounted,
+                    }) => {
+                      return (
+                        <div
+                          {...(!mounted && {
+                            "aria-hidden": true,
+                            style: {
+                              opacity: 0,
+                              pointerEvents: "none",
+                              userSelect: "none",
+                            },
+                          })}
+                        >
+                          {(() => {
+                            if (!mounted || !account || !chain) {
+                              return (
+                                <Button
+                                  onClick={openConnectModal}
+                                  type="button"
+                                  className="mt-5"
+                                >
+                                  Choose address to originate from
+                                </Button>
+                              );
+                            }
+
+                            if (chain.unsupported) {
+                              return (
+                                <button onClick={openChainModal} type="button">
+                                  Wrong network, try again
+                                </button>
+                              );
+                            }
+
+                            return (
+                              <div>
+                                {chain.name === "Ethereum" ? (
+                                  <>
+                                    <Button
+                                      onClick={openAccountModal}
+                                      type="button"
+                                      className="mt-5 mr-5"
+                                    >
+                                      Change address
+                                    </Button>
+                                    <Button
+                                      disabled={!validAddress}
+                                      onClick={() => {
+                                        signer.signMessage();
+                                      }}
+                                      className="disabled:opacity-50 mt-5"
+                                    >
+                                      {validAddress
+                                        ? `Sign address with ${account.address} & generate proof!`
+                                        : "Enter a valid address..."}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    onClick={openAccountModal}
+                                    type="button"
+                                    className="mt-5"
+                                  >
+                                    Change chain to Ethereum
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    }}
+                  </ConnectButton.Custom>
+                </>
+              )}
               {stage === Stage.ADDRESS && (
                 <>
-                  <InfoRow
-                    name="Originator"
-                    content={"0x" + BigInt(originalPubInputs![2]).toString(16)}
-                  />
-                  <InfoRow
-                    name="Your distance"
-                    content={originalPubInputs![1]}
-                  />
+                  <InfoRow name="Originator" content={originator} />
+                  <InfoRow name="Your distance" content={degree.toString()} />
                   <textarea
                     rows={1}
                     name="address"
@@ -263,25 +362,34 @@ const Send: NextPage = () => {
 
                             return (
                               <div>
-                                {chain.name === "Ethereum" &&
-                                account.address.toLowerCase() ===
+                                {chain.name === "Ethereum" ? (
+                                  account.address.toLowerCase() ===
                                   sourceAddress ? (
-                                  <Button
-                                    disabled={!validAddress}
-                                    onClick={() => signer.signMessage()}
-                                    className="disabled:opacity-50 mt-5"
-                                  >
-                                    {validAddress
-                                      ? "Sign address & generate proof!"
-                                      : "Enter a valid address..."}
-                                  </Button>
+                                    <Button
+                                      disabled={!validAddress}
+                                      onClick={() => signer.signMessage()}
+                                      className="disabled:opacity-50 mt-5"
+                                    >
+                                      {validAddress
+                                        ? "Sign address & generate proof!"
+                                        : "Enter a valid address..."}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      onClick={openAccountModal}
+                                      type="button"
+                                      className="mt-5"
+                                    >
+                                      Change address to {sourceAddress}
+                                    </Button>
+                                  )
                                 ) : (
                                   <Button
                                     onClick={openAccountModal}
                                     type="button"
                                     className="mt-5"
                                   >
-                                    Change address to {sourceAddress}
+                                    Change chain to Ethereum
                                   </Button>
                                 )}
                               </div>
@@ -299,13 +407,10 @@ const Send: NextPage = () => {
               {stage === Stage.FINISHED && (
                 <>
                   <Title>{stage}</Title>
-                  <InfoRow
-                    name="Originator"
-                    content={"0x" + BigInt(originalPubInputs![2]).toString(16)}
-                  />
+                  <InfoRow name="Originator" content={originator} />
                   <InfoRow
                     name="Distance of your receipient"
-                    content={(parseInt(originalPubInputs![1]) + 1).toString()}
+                    content={(degree + 1).toString()}
                   />
                   <InfoRow
                     name="Link"
