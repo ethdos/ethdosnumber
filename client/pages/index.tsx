@@ -24,9 +24,6 @@ const Home: NextPage = () => {
                 <div>
                   Presenting ETHdos numbers: measuring degrees of separation of people (akin to Bacon/Erdos numbers) while hiding individual friendships entirely. This is the first of its kind social experiment using the composability of recursive zk snarks.
                 </div>
-                <div>
-                  ETHdos begins at a central person, lets say its “Vitalik”. Theyll start by sending proofs of friendship in the form of ZK SNARKs to their closest ones, and their friends will be able to continue the chain from there. Eventually, you’ll be able to prove that you are connected to Vitalik with N degrees of seperation BUT you will not be able to determinate the path of people to him, nor will anyone else in the world. This creates a fun social experiment which allows famous personalities to reveal very limited information about their social graphs, while others can prove their connections reputably and can even mint NFTs on-chain to brag about their proximity!
-                </div>
               </div>
 
               <div className="mb-8">
@@ -44,6 +41,9 @@ const Home: NextPage = () => {
 
               <div className="mb-8">
                 <strong>How?</strong>
+                <div>
+                  ETHdos begins at a central person, lets say its “Vitalik”. Theyll start by sending proofs of friendship in the form of ZK SNARKs to their closest ones, and their friends will be able to continue the chain from there. Eventually, you’ll be able to prove that you are connected to Vitalik with N degrees of seperation BUT you will not be able to determinate the path of people to him, nor will anyone else in the world. This creates a fun social experiment which allows famous personalities to reveal very limited information about their social graphs, while others can prove their connections reputably and can even mint NFTs on-chain to brag about their proximity!
+                </div>
                 <div>
                 This project uses
                 <a href="https://z.cash/technology/zksnarks/">
