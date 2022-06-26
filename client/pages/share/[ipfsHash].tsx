@@ -9,7 +9,8 @@ import { Stepper, Title, Button } from "../../components/Base";
 import InfoRow from "../../components/InfoRow";
 import Slideover from "../../components/Slideover";
 import { checkProof, fetchSolidityData } from "../../lib/generateProof";
-import { useContractWrite } from "wagmi";
+import { useProvider, useContractWrite, useConnect, useContractRead } from "wagmi";
+import { ethers } from "ethers";
 
 // const snarkjs = require("snarkjs");
 
@@ -23,21 +24,21 @@ const Share: NextPage = () => {
   const router = useRouter();
   const { ipfsHash } = router.query;
 
-  const [stage, setStage] = useState(Stage.LOADING);
-  const [proof, setProof] = useState(null);
-  const [pubInputs, setPubInputs] = useState(null);
+  const [stage, setStage] = useState<any>(Stage.LOADING);
+  const [proof, setProof] = useState<any>(null);
+  const [pubInputs, setPubInputs] = useState<any>(null);
 
   const [verifyStatus, setVerifyStatus] = useState<string>("Verify proof");
 
   useEffect(() => {
     async function getHash() {
-      const resp = await fetch(`/api/getproof/${ipfsHash}`);
-      const respData = JSON.parse(await resp.json());
+      // const resp = await fetch(`/api/getproof/${ipfsHash}`);
+      const respData = {"proof": {"pi_a": ["9163931239158236559929252072050702414821247788467913252518040146199775106157", "9645438455954535995973877152036686481676448736347953811429470348048996196296", "1"], "pi_b": [["8354781104335953642593417576951392587630432889655776180187360605970595009841", "11475360675470552444489290379976712350047522826541757762500093494041837589782"], ["9998471956447751815747605383512198282053763674038573195883746491058748087628", "13449844122872339986429005058721124041043660172450189940978613324787279984994"], ["1", "0"]], "pi_c": ["11355137855592861713975988355781915240019038506556978586064285040623187152764", "14967633781419664150915401403725470940164810932833605345390663314340578436824", "1"], "protocol": "groth16"}, "pubInputs": ["7138597452374049843442357986628673314690363139209617000292486089713270058062", "2", "449116070504281332671503011463517494968310008447", "1372195430083199122347297720738491162005206364123"]}
 
-      if (!resp.ok) {
-        setStage(Stage.INVALID);
-        return;
-      }
+      // if (!resp.ok) {
+      //   setStage(Stage.INVALID);
+      //   return;
+      // }
 
       setProof(respData.proof);
       setPubInputs(respData.pubInputs);
@@ -92,25 +93,30 @@ const Share: NextPage = () => {
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     }
   ];
 
-  // const getSolidityProofArray = (proof: any) => {
-  //   let proofList = [
-  //     proof["pi_a"][0],
-  //     proof["pi_a"][1],
-  //     proof["pi_b"][0][1],
-  //     proof["pi_b"][0][0],
-  //     proof["pi_b"][1][1],
-  //     proof["pi_b"][1][0],
-  //     proof["pi_c"][0],
-  //     proof["pi_c"][1],
-  //   ];
-  //   return proofList;
-  // };
+  const provider = useProvider();
+  console.log("provider", provider);
 
   // const solidityData = mintNftHelper(proof, pubInputs);
   const solidityData = proof && pubInputs ? fetchSolidityData(proof, pubInputs) : [];
+
+  const { isConnected } = useConnect();
+  
   //snarkjs.groth16ExportSolidityCallData(proof, pubInputs);
   const { data, isError, isLoading, write } = useContractWrite(
     {
@@ -123,7 +129,13 @@ const Share: NextPage = () => {
     }
   );
 
+  console.log("proof", proof);
+  console.log("pubInputs", pubInputs);
+  console.log('solidityData', solidityData);
+  console.log('isConnected', isConnected);
   console.log('data', data);
+  console.log('isError', isError);
+  console.log('isLoading', isLoading);
   console.log('write', write);
   console.log('lol');
 
@@ -140,6 +152,8 @@ const Share: NextPage = () => {
         <div className="flex h-full items-center justify-center text-white">
           <div className="w-1/2">
             <Stepper>ETHdos number</Stepper>
+            <ConnectButton />
+
 
             <div className="my-5">
               {stage === Stage.LOADING && <Title>{stage}</Title>}
