@@ -272,7 +272,7 @@ const Send: NextPage = () => {
 
                             return (
                               <div>
-                                {chain.name === "Ethereum" ? (
+                                {chain.id == 10 ? (
                                   <>
                                     <Button
                                       onClick={openAccountModal}
