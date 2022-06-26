@@ -378,7 +378,7 @@ const Send: NextPage = () => {
 
                             return (
                               <div>
-                                {chain.name === "Ethereum" ? (
+                                {chain.id == 10 ? (
                                   account.address.toLowerCase() ===
                                   sourceAddress ? (
                                     <Button
