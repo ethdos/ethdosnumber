@@ -38,18 +38,14 @@ export default function LoadingText({ currentStage }: Props) {
           <ClipLoader color={"black"} loading={true} size={15} />
         </div>
       </div>
-      <div className="flex">
-        <span className="font-bold pr-2"> Note: </span>
-        <span> Your page may become unresponsive, but keep waiting! </span>
-      </div>
-      {/* <div>
+      <div>
         <span className="font-bold text-heyanonyellow">{`>>> `}</span>
         <span> Running for {timer} seconds </span>
       </div>
       <div>
         <span className="font-bold text-heyanonyellow">{`>>> `}</span>
         <span> {text} </span>
-      </div> */}
+      </div>
     </div>
   );
 }

@@ -7,7 +7,7 @@ const Home: NextPage = () => {
     <>
       <div className="scroll-smooth">
         <Head>
-          <title>heyanon!</title>
+          <title>ETHdos</title>
           <link rel="icon" href="/public/favicon.ico" />
           <script async src="snarkjs.min.js"></script>
         </Head>
