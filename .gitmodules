@@ -1,0 +1,4 @@
+[submodule "circom-pairing"]
+	path = circom-pairing
+	url = https://github.com/nalinbhardwaj/circom-pairing.git
+	branch = ethdos
