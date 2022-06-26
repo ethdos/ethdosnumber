@@ -152,7 +152,6 @@ const Share: NextPage = () => {
         <div className="flex h-full items-center justify-center text-white">
           <div className="w-1/2">
             <Stepper>ETHdos number</Stepper>
-            <ConnectButton />
 
 
             <div className="my-5">
@@ -182,7 +181,11 @@ const Share: NextPage = () => {
             </div>
             <div className="py-2">
               {stage === Stage.FINISHED && (
+                <>
+                <ConnectButton />
+                <br />
                 <Button onClick={() => write()} className="mr-5">Mint NFT</Button>
+                </>
               )}
             </div>
           </div>
