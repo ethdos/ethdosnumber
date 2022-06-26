@@ -4,6 +4,15 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  async redirects() {
+    return [
+      {
+        source: "/send",
+        destination: "/send/paste",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
