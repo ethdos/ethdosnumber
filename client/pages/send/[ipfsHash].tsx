@@ -61,7 +61,7 @@ const Send: NextPage = () => {
   }
   const validAddress = ensValid || rawValid;
   const correctAddr = !!rawValid ? rawValid : data;
-  const signMessage = (correctAddr + "").toLowerCase();
+  const signMessage = "ETHdos friend: " + (correctAddr + "").toLowerCase();
   const signer = useSignMessage({
     message: signMessage,
   });
@@ -178,7 +178,10 @@ const Send: NextPage = () => {
         <Head>
           <title>ETHdos</title>
           <link rel="icon" href="/favicon.ico" />
-          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Mono" />
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css?family=Space+Mono"
+          />
           <script async src="snarkjs.min.js"></script>
         </Head>
 
