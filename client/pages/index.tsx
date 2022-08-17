@@ -1,15 +1,17 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { Title } from "../components/Base";
+import Link from "next/link";
+import { StepperHover, Button, Title } from "../components/Base";
 
 const Home: NextPage = () => {
   return (
     <>
       <div className="scroll-smooth">
         <Head>
-          <title>heyanon!</title>
+          <title>ETHdos</title>
           <link rel="icon" href="/public/favicon.ico" />
-          <script async src="snarkjs.min.js"></script>
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Mono" />
+          {/* <script src="/public/snarkjs.min.js"></script> */}
         </Head>
 
         <div className="flex h-full justify-center bg-heyanonred text-white">
@@ -18,52 +20,49 @@ const Home: NextPage = () => {
 
             <div className="grid">
               <div className="mb-8">
-                <strong>What is this site?</strong>
+                <strong>What?</strong>
                 <div>
-                  <a href="https://heyanon.xyz">heyanon </a>
-                  is a way for people who did cool stuff on Ethereum to
-                  broadcast messages anonymously on Twitter. Historic moment
-                  feeds are curated by the
-                  <a href="https://twitter.com/heyanonxyz"> @heyanonxyz </a>
-                  account, such as the{" "}
-                  <a href="https://twitter.com/DAOHackGossip">DAO hack</a>
-                  feed. Anyone whose participation in the moment can be verified
-                  on-chain can post to the feed. The magic is that you don’t
-                  need to reveal your address when you do.
-                  <br />
-                  <em>Not even to the site admins.</em>
+                  Presenting ETHdos numbers: measuring degrees of separation of people (akin to Bacon/Erdos numbers) while hiding individual friendships entirely. This is the first of its kind social experiment using the composability of recursive zk snarks.
                 </div>
               </div>
 
               <div className="mb-8">
-                <strong>How does it work?</strong>
+                <strong>Demo</strong>
                 <div>
-                  When you send a message with heyanon, you generate a
-                  <a href="https://en.wikipedia.org/wiki/Zero-knowledge_proof">
-                    {" "}
-                    zero-knowledge proof{" "}
-                  </a>
-                  that you were involved with a certain event on-chain. This
-                  proof hides all information about your address. The proof is
-                  all that is sent to the{" "}
-                  <a href="https://heyanon.xyz">heyanon</a> backend for
-                  verification. Upon verification, the proof is posted to
-                  <a href="https://ipfs.io/">ipfs</a>
-                  and your message is sent via the specified event feed bot. The
-                  message has with it a verify link twitter readers can use to
-                  the proof located on ipfs themselves. For more, check out our
-                  github (TODO: add github).
+                  <Link href="/send/paste">
+                    <StepperHover>ETHdos number</StepperHover>
+                  </Link>
+                  <br/>
+                  <Link href="/share/QmZwz1zBDWSpU5vEJhanb2LixjxVaL4snXDVnFrX55ntgR">
+                    <Button>Example Proof</Button>
+                  </Link>
                 </div>
               </div>
 
               <div className="mb-8">
-                <strong>How can you contribute or follow along?</strong>
+                <strong>How?</strong>
                 <div>
-                  Follow{" "}
-                  <a href="https://twitter.com/heyanonxyz">@heyanonxyz</a> for
-                  updates and new message feeds. Join our{" "}
-                  <a href="https://discord.gg/4J3XzZJf">discord</a> for misc.
-                  discussion.
+                  ETHdos begins at a central person, lets say its “Vitalik”. Theyll start by sending proofs of friendship in the form of ZK SNARKs to their closest ones, and their friends will be able to continue the chain from there. Eventually, you’ll be able to prove that you are connected to Vitalik with N degrees of seperation BUT you will not be able to determinate the path of people to him, nor will anyone else in the world. This creates a fun social experiment which allows famous personalities to reveal very limited information about their social graphs, while others can prove their connections reputably and can even mint NFTs on-chain to brag about their proximity!
+                </div>
+                <div>
+                This project uses
+                <a href="https://z.cash/technology/zksnarks/">
+                  {" "}recursive zk-snarks{" "}</a>
+                  to make composable proofs between different people. Using these proofs, you are able to generate the equivalent of Erdos/Bacon numbers but for peoples social graph.
+                <br/><br/>
+                ZK SNARKs allow you to generate succinct proofs of knowledge that do not leak anything about the inputs to these proofs while proving assertions about these inputs. Recursive ZK SNARKs allow you to take this a step further and abuse the succinctness properties of SNARKs to create infinite chains of proofs that can be composably used with other private data (even from other parties) to generate larger proofs.
+                <br/><br/>
+                We realized that this is a really interesting primitive to base social experiments on. For instance, recursive ZK SNARKs could allow you to play the game of telephone/secret whispers in a decentralised environment. Building on this idea further, we came up with the idea of encoding the concept of degrees of seperation using a decentralised PKI such as Ethereum. While theoretically interesting, getting this idea to production involved a lot of practical work and hacky solutions. Going from beefy 256gb RAM servers to writing 25 million constraint SNARK circuits, we ended up exploring our understanding of everything from math to devops. Ultimately, we are able to demonstrate an exciting new idea and hope this will lead to other more interesting ones.
+                <br/><br/>
+                Users can also post these proofs on chain to mint NFTs claiming that
+                they are degree-k close to Vitalik. Who wouldnt want an NFT saying that
+                you are almost besties with Vitalik? :P
+                <br/><br/>
+                This allows for a fun social experiment where users would try to
+                have the lowest degree of separation by talking to their friends!
+                <br/><br/>
+                For more, check out our github:
+                <a href="https://github.com/nalinbhardwaj/ethdosnumber">{" "}github.com/nalinbhardwaj/ethdosnumber</a>
                 </div>
               </div>
             </div>

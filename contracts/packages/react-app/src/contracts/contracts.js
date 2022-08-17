@@ -1,1 +1,0 @@
-module.exports = ["SDT","ethdos"];

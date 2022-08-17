@@ -1,15 +1,15 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { Dispatch } from 'react'
-import { Fragment, SetStateAction, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { XIcon } from '@heroicons/react/outline'
+import { Dispatch } from "react";
+import { Fragment, SetStateAction, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { XIcon } from "@heroicons/react/outline";
 
 type Props = {
-  open: boolean
-  setOpen: Dispatch<SetStateAction<boolean>>
-  title?: string
-  children?: JSX.Element
-}
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  title?: string;
+  children?: JSX.Element;
+};
 
 export default function SlideOver({ open, setOpen, title, children }: Props) {
   return (
@@ -37,8 +37,8 @@ export default function SlideOver({ open, setOpen, title, children }: Props) {
                   <div className="px-4 sm:px-6">
                     <div className="flex items-start justify-between">
                       <Dialog.Title className="text-lg font-medium text-gray-900">
-                        {' '}
-                        {title}{' '}
+                        {" "}
+                        {title}{" "}
                       </Dialog.Title>
                       <div className="ml-3 flex h-7 items-center">
                         <button
@@ -71,5 +71,5 @@ export default function SlideOver({ open, setOpen, title, children }: Props) {
         </div>
       </Dialog>
     </Transition.Root>
-  )
+  );
 }

@@ -1,94 +1,176 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { InjectedConnector } from "wagmi/connectors/injected";
-import type { NextPage } from "next";
-import {
-  useAccount,
-  useConnect,
-  useDisconnect,
-  useEnsAddress,
-  useSignMessage,
-} from "wagmi";
-import Head from "next/head";
-import { useState } from "react";
-import { getAddress } from "ethers/lib/utils";
-import { sign } from "crypto";
-import { generateProofInputs, postData } from "../../lib/generateProof";
-import { Stepper, Title, Button } from "../../components/Base";
+import { useEffect, useState } from "react";
 
-const backendUrl = "https://backend.stealthdrop.xyz/";
-// http://localhost:3001/"; // http://45.76.66.251/
+import type { NextPage } from "next";
+import Head from "next/head";
+import { useRouter } from "next/router";
+
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useEnsAddress, useSignMessage } from "wagmi";
+import { getAddress } from "ethers/lib/utils";
+import {
+  generateProofInputs,
+  hexStringTobigInt,
+  postData,
+} from "../../lib/generateProof";
+import { Stepper, Title, Button } from "../../components/Base";
+import LoadingText from "../../components/LoadingText";
+import InfoRow from "../../components/InfoRow";
+
+enum Stage {
+  LOADING = "Loading...",
+  INVALID = "Invalid IPFS hash :(",
+  PASTEPROOF = "Paste in your proof...",
+  ADDRESS = "Choose an address or ENS name to send to...",
+  ORIGIN = "You are the origin! Choose an address or ENS name to send to...",
+  GENERATING = "Generating...",
+  ERROR = "Error on server, retry later :(",
+  FINISHED = "Finished!",
+}
+
+const backendUrl = "https://backend.ethdos.xyz/";
 
 const Send: NextPage = () => {
-  const [friendAddr, setFriendAddr] = useState<string>("");
-  const [originalProof, setOriginalProof] = useState<string>("");
-  const [proof, setProof] = useState<string | undefined>();
-  const [proofStatus, setProofStatus] = useState("GENERATE");
+  const router = useRouter();
+  const { ipfsHash } = router.query;
+  const [stage, setStage] = useState<Stage>(Stage.LOADING);
+
+  const [originalProof, setOriginalProof] = useState(null);
+  const [validOriginalProof, setValidOriginalProof] = useState(false);
+  const [originalPubInputs, setOriginalPubInputs] = useState<null | string[]>(
+    null
+  );
+  const [originator, setOriginator] = useState<string>("");
+  const [degree, setDegree] = useState<number>(0);
+
+  const [proof, setProof] = useState(null);
+  const [pubInputs, setPubInputs] = useState(null);
+
+  const [sourceAddress, setSourceAddress] = useState<string>("");
+  const [sinkAddress, setSinkAddress] = useState<string>("");
+
+  const [sinkIpfsHash, setSinkIpfsHash] = useState<string>("");
+
   const { data, isError, isLoading } = useEnsAddress({
-    name: friendAddr,
+    name: sinkAddress,
   });
   const ensValid = !!data && !isError && !isLoading;
   try {
-    var rawValid = !!getAddress(friendAddr);
+    var rawValid: string | undefined = getAddress(sinkAddress);
   } catch (error) {
-    var rawValid = false;
+    var rawValid: string | undefined = undefined;
   }
-  const isValid = ensValid || rawValid;
+  const validAddress = ensValid || rawValid;
   const correctAddr = !!rawValid ? rawValid : data;
-
-  const canSign = isValid;
-  const isOriginator = canSign && !proof;
-
-  const signMessage = (correctAddr + "").toLowerCase();
-
+  const signMessage = "ETHdos friend: " + (correctAddr + "").toLowerCase();
   const signer = useSignMessage({
     message: signMessage,
   });
 
-const generateZKProof = async () => {
-  setProofStatus("ASSEMBLING");
-  const originalProofJson = JSON.parse(originalProof);
-  const inputs = await generateProofInputs(
-    originalProofJson,
-    friendAddr,
-    signer.data,
-    signMessage,
-  );
-  console.log("inputs", inputs);
-  console.log("stringify'd inputs", JSON.stringify(inputs));
-  if (!inputs) return;
-  // send api post request to generate proof
-  const returnData = await postData(backendUrl + "generate_proof", inputs);
-  if (!returnData.ok) {
-    alert("Error generating proof, please try again later");
-    return;
-  }
-  const returnJSON = await returnData.json();
-  setProofStatus(returnJSON && returnJSON["id"] ? "LOADING" : "ERROR!");
-  const processId = returnJSON["id"];
-  console.log("processId", processId);
+  // generate ZK proof given original proof and sink address
+  const generateZKProof = async () => {
+    const inputs = generateProofInputs(
+      originalProof,
+      originalPubInputs,
+      correctAddr,
+      signer.data,
+      signMessage
+    );
+    console.log("inputs", inputs);
+    if (!inputs) return;
 
-  const intervalId = setInterval(async () => {
-    const res = await postData(backendUrl + "result", { id: processId });
-    if (res.status === 200) {
-      const json = await res.json();
-      if (!json) {
+    // send api post request to generate proof
+    const returnData = await postData(backendUrl + "generate_proof", inputs);
+    if (!returnData.ok) {
+      setStage(Stage.ERROR);
+      return;
+    }
+    const returnJSON = await returnData.json();
+    if (!(returnJSON && returnJSON["id"])) {
+      setStage(Stage.ERROR);
+      return;
+    }
+
+    const processId = returnJSON["id"];
+    console.log("processId", processId);
+    const intervalId = setInterval(async () => {
+      const res = await postData(backendUrl + "result", { id: processId });
+      if (res.status === 200) {
+        const json = await res.json();
+        console.log("json", json);
+        if (!json || "result" in json) {
+          if (
+            json["result"].includes("failed") &&
+            json["result"].includes("ERROR")
+          ) {
+            console.log("error", res);
+            clearInterval(intervalId);
+            setStage(Stage.ERROR);
+          }
+        } else {
+          setProof(json.proof);
+          setPubInputs(json.pubInputs);
+          clearInterval(intervalId);
+          const resp = await fetch("/api/storeproof", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              proof,
+              pubInputs,
+            }),
+          });
+          const respData = await resp.json();
+          setSinkIpfsHash(respData["ipfsHash"]);
+          setStage(Stage.FINISHED);
+        }
+      } else {
         console.log("error", res);
         clearInterval(intervalId);
-        setProofStatus("ERROR: SERVER LOAD HIGH, RETRY LATER!");
-      } else {
-        setProof(json);
-        clearInterval(intervalId);
-        setProofStatus("GENERATED");
+        setStage(Stage.ERROR);
       }
-    } else if (res.status === 400) {
-      setProofStatus("LOADING");
-    } else {
-      console.log("error", res);
-      clearInterval(intervalId);
-      setProofStatus("ERROR: SERVER LOAD HIGH, RETRY LATER!");
+    }, 10000);
+  };
+
+  const updateOriginalProof = (data: any) => {
+    setOriginalProof(data.proof);
+    setOriginalPubInputs(data.pubInputs);
+    setOriginator("0x" + BigInt(data.pubInputs![2]).toString(16));
+    setDegree(parseInt(data.pubInputs![1]));
+    setSourceAddress("0x" + BigInt(data.pubInputs.slice(-1)[0]).toString(16));
+  };
+
+  useEffect(() => {
+    async function getHash() {
+      if (ipfsHash === "origin") {
+        setStage(Stage.ORIGIN);
+        return;
+      }
+
+      if (ipfsHash === "paste") {
+        setStage(Stage.PASTEPROOF);
+        return;
+      }
+
+      const resp = await fetch(`/api/getproof/${ipfsHash}`);
+      if (!resp.ok) {
+        setStage(Stage.INVALID);
+        return;
+      }
+      const respData = JSON.parse(await resp.json());
+      updateOriginalProof(respData);
+      setStage(Stage.ADDRESS);
     }
-  }, 10000);
-};
+
+    if (ipfsHash) {
+      getHash();
+    }
+  }, [ipfsHash]);
+
+  if ((stage == Stage.ADDRESS || stage === Stage.ORIGIN) && signer.isSuccess) {
+    setStage(Stage.GENERATING);
+    generateZKProof();
+  }
 
   return (
     <>
@@ -96,43 +178,269 @@ const generateZKProof = async () => {
         <Head>
           <title>ETHdos</title>
           <link rel="icon" href="/favicon.ico" />
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css?family=Space+Mono"
+          />
           <script async src="snarkjs.min.js"></script>
         </Head>
 
         <div className="flex h-full items-center justify-center text-white">
-          <div className="prose max-w-prose">
-            <div className="flex justify-between">
-              <Stepper>ZK Proof Generation</Stepper>
-            </div>
-
-            <Title> ETHdos number </Title>
+          <div className="w-1/2">
+            <Stepper>ETHdos number</Stepper>
 
             <div className="my-5">
-              <ConnectButton />
-              <div className="">
-                <textarea
-                  rows={4}
-                  name="comment"
-                  id="comment"
-                  className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5"
-                  placeholder={"Enter tweet..."}
-                  value={originalProof}
-                  onChange={(e) => setOriginalProof(e.target.value)}
-                />
-              </div>
-              <input
-                type="text"
-                placeholder="0xADDRESS"
-                value={friendAddr}
-                onChange={(e) => setFriendAddr(e.target.value)}
-              />
-              <text>{isValid ? "Valid address" : "Invalid Address"}</text>
-              <Button disabled={!canSign} onClick={() => signer.signMessage()}>
-                Sign Message
-              </Button>
-              <text>Sign Data: {signer.data}</text>
-              <Button disabled={isValid} onClick={generateZKProof}>{proofStatus}</Button>
-              <Button>Mint NFT</Button>
+              {stage === Stage.LOADING && <Title>{stage}</Title>}
+              {stage === Stage.INVALID && <Title>{stage}</Title>}
+              {stage === Stage.PASTEPROOF && (
+                <>
+                  <textarea
+                    rows={10}
+                    name="proof"
+                    id="proof"
+                    className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5"
+                    placeholder={stage}
+                    onChange={(e) => {
+                      try {
+                        const pasteProof = JSON.parse(e.target.value);
+                        updateOriginalProof(pasteProof);
+                        setValidOriginalProof(true);
+                      } catch (error) {
+                        console.log(error);
+                        setValidOriginalProof(false);
+                      }
+                    }}
+                  />
+                  <Button
+                    disabled={!validOriginalProof}
+                    onClick={() => setStage(Stage.ADDRESS)}
+                    className="disabled:opacity-50 mt-5"
+                  >
+                    Submit
+                  </Button>
+                </>
+              )}
+              {stage === Stage.ORIGIN && (
+                <>
+                  <textarea
+                    rows={1}
+                    name="originaddress"
+                    id="originaddress"
+                    className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5 mt-5"
+                    placeholder={stage}
+                    value={sinkAddress}
+                    onChange={(e) => setSinkAddress(e.target.value)}
+                  />
+
+                  <ConnectButton.Custom>
+                    {({
+                      account,
+                      chain,
+                      openAccountModal,
+                      openChainModal,
+                      openConnectModal,
+                      mounted,
+                    }) => {
+                      return (
+                        <div
+                          {...(!mounted && {
+                            "aria-hidden": true,
+                            style: {
+                              opacity: 0,
+                              pointerEvents: "none",
+                              userSelect: "none",
+                            },
+                          })}
+                        >
+                          {(() => {
+                            if (!mounted || !account || !chain) {
+                              return (
+                                <Button
+                                  onClick={openConnectModal}
+                                  type="button"
+                                  className="mt-5"
+                                >
+                                  Choose address to originate from
+                                </Button>
+                              );
+                            }
+
+                            if (chain.unsupported) {
+                              return (
+                                <button onClick={openChainModal} type="button">
+                                  Wrong network, try again
+                                </button>
+                              );
+                            }
+
+                            return (
+                              <div>
+                                {chain.id == 10 ? (
+                                  <>
+                                    <Button
+                                      onClick={openAccountModal}
+                                      type="button"
+                                      className="mt-5 mr-5"
+                                    >
+                                      Change origin address
+                                    </Button>
+                                    <Button
+                                      disabled={!validAddress}
+                                      onClick={() => {
+                                        setOriginalPubInputs([
+                                          "0",
+                                          "0",
+                                          hexStringTobigInt(
+                                            account.address
+                                          ).toString(),
+                                          hexStringTobigInt(
+                                            account.address
+                                          ).toString(),
+                                        ]);
+                                        signer.signMessage();
+                                      }}
+                                      className="disabled:opacity-50 mt-5"
+                                    >
+                                      {validAddress
+                                        ? `Sign address & generate proof!`
+                                        : "Enter a valid address..."}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    onClick={openAccountModal}
+                                    type="button"
+                                    className="mt-5"
+                                  >
+                                    Change chain to Optimism Mainnet
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    }}
+                  </ConnectButton.Custom>
+                </>
+              )}
+              {stage === Stage.ADDRESS && (
+                <>
+                  <InfoRow name="Originator" content={originator} />
+                  <InfoRow name="Your distance" content={degree.toString()} />
+                  <textarea
+                    rows={1}
+                    name="address"
+                    id="address"
+                    className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5 mt-5"
+                    placeholder={stage}
+                    value={sinkAddress}
+                    onChange={(e) => setSinkAddress(e.target.value)}
+                  />
+
+                  <ConnectButton.Custom>
+                    {({
+                      account,
+                      chain,
+                      openAccountModal,
+                      openChainModal,
+                      openConnectModal,
+                      mounted,
+                    }) => {
+                      return (
+                        <div
+                          {...(!mounted && {
+                            "aria-hidden": true,
+                            style: {
+                              opacity: 0,
+                              pointerEvents: "none",
+                              userSelect: "none",
+                            },
+                          })}
+                        >
+                          {(() => {
+                            if (!mounted || !account || !chain) {
+                              return (
+                                <Button
+                                  onClick={openConnectModal}
+                                  type="button"
+                                  className="mt-5"
+                                >
+                                  Connect {`${sourceAddress}`}
+                                </Button>
+                              );
+                            }
+
+                            if (chain.unsupported) {
+                              return (
+                                <button onClick={openChainModal} type="button">
+                                  Wrong network, try again
+                                </button>
+                              );
+                            }
+
+                            return (
+                              <div>
+                                {chain.id == 10 ? (
+                                  account.address.toLowerCase() ===
+                                  sourceAddress ? (
+                                    <Button
+                                      disabled={!validAddress}
+                                      onClick={() => signer.signMessage()}
+                                      className="disabled:opacity-50 mt-5"
+                                    >
+                                      {validAddress
+                                        ? "Sign address & generate proof!"
+                                        : "Enter a valid address..."}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      onClick={openAccountModal}
+                                      type="button"
+                                      className="mt-5"
+                                    >
+                                      Change address to {sourceAddress}
+                                    </Button>
+                                  )
+                                ) : (
+                                  <Button
+                                    onClick={openAccountModal}
+                                    type="button"
+                                    className="mt-5"
+                                  >
+                                    Change chain to Ethereum
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    }}
+                  </ConnectButton.Custom>
+                </>
+              )}
+
+              {stage === Stage.GENERATING && <LoadingText />}
+              {stage === Stage.ERROR && <Title>{stage}</Title>}
+              {stage === Stage.FINISHED && (
+                <>
+                  <Title>{stage}</Title>
+                  <InfoRow name="Originator" content={originator} />
+                  <InfoRow
+                    name="Distance of your receipient"
+                    content={(degree + 1).toString()}
+                  />
+                  <InfoRow
+                    name="Link"
+                    content={
+                      <a href={`http://ethdos.xyz/share/${sinkIpfsHash}`}>
+                        http://ethdos.xyz/share/{sinkIpfsHash}
+                      </a>
+                    }
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>

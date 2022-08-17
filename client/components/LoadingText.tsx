@@ -15,7 +15,7 @@ type Props = {
   currentStage: string;
 };
 
-export default function LoadingText({ currentStage }: Props) {
+export default function LoadingText() {
   const [timer, setTimer] = useState(0);
   const [text, setText] = useState(textArray[0]);
 
@@ -33,23 +33,19 @@ export default function LoadingText({ currentStage }: Props) {
     <div>
       <div className="flex">
         <span className="font-bold pr-2"> Currently: </span>
-        <span> {`${currentStage}`} </span>
         <div className="pl-2">
           <ClipLoader color={"black"} loading={true} size={15} />
         </div>
       </div>
-      <div className="flex">
-        <span className="font-bold pr-2"> Note: </span>
-        <span> Your page may become unresponsive, but keep waiting! </span>
-      </div>
-      {/* <div>
+      <div>
         <span className="font-bold text-heyanonyellow">{`>>> `}</span>
         <span> Running for {timer} seconds </span>
+        <span> (Usually takes a couple of minutes) </span>
       </div>
       <div>
         <span className="font-bold text-heyanonyellow">{`>>> `}</span>
         <span> {text} </span>
-      </div> */}
+      </div>
     </div>
   );
 }

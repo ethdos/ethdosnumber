@@ -1,36 +1,143 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
-import { useEnsAddress, useSignMessage } from "wagmi";
+import { useRouter } from "next/router";
+
 import Head from "next/head";
-import { useState } from "react";
-import { getAddress } from "ethers/lib/utils";
-import { sign } from "crypto";
+import { useEffect, useState } from "react";
 
 import { Stepper, Title, Button } from "../../components/Base";
+import InfoRow from "../../components/InfoRow";
+import Slideover from "../../components/Slideover";
+import { checkProof, fetchSolidityData } from "../../lib/generateProof";
+import { useProvider, useContractWrite, useConnect, useContractRead } from "wagmi";
+import { ethers } from "ethers";
+
+// const snarkjs = require("snarkjs");
+
+enum Stage {
+  LOADING = "Loading proof from IPFS...",
+  INVALID = "Invalid IPFS hash :(",
+  FINISHED = "Proof information",
+}
 
 const Share: NextPage = () => {
-  const [friendAddr, setFriendAddr] = useState<string>("");
-  const [proof, setProof] = useState("");
-  const { data, isError, isLoading } = useEnsAddress({
-    name: friendAddr,
-  });
-  const ensValid = !!data && !isError && !isLoading;
-  try {
-    var rawAddress : string | undefined = getAddress(friendAddr);
-  } catch (error) {
-    var rawAddress : string | undefined = undefined;
-  }
-  const isValid = ensValid || rawAddress;
-  const correctAddr = !!rawAddress ? rawAddress : data;
+  const router = useRouter();
+  const { ipfsHash } = router.query;
 
-  const canSign = isValid;
-  const isOriginator = canSign && !proof;
+  const [stage, setStage] = useState<any>(Stage.LOADING);
+  const [proof, setProof] = useState<any>(null);
+  const [pubInputs, setPubInputs] = useState<any>(null);
 
-  const signMessage = (correctAddr + "").toLowerCase();
+  const [verifyStatus, setVerifyStatus] = useState<string>("Verify proof");
 
-  const signer = useSignMessage({
-    message: signMessage,
-  });
+  useEffect(() => {
+    async function getHash() {
+      const resp = await fetch(`/api/getproof/${ipfsHash}`);
+      const respData = JSON.parse(await resp.json());
+
+      if (!resp.ok) {
+        setStage(Stage.INVALID);
+        return;
+      }
+
+      setProof(respData.proof);
+      setPubInputs(respData.pubInputs);
+      setStage(Stage.FINISHED);
+    }
+
+    if (ipfsHash) {
+      getHash();
+    }
+  }, [ipfsHash]);
+
+  // const verifyProofInBrowser = async () => {
+  //   setVerifyStatus("Verifying...");
+  //   try {
+  //     const proofVerified = await checkProof(proof, pubInputs);
+  //     if (proofVerified) {
+  //       setVerifyStatus("Verified ✅");
+  //     } else {
+  //       setVerifyStatus("Proof is not valid");
+  //     }
+  //   } catch {
+  //     setVerifyStatus("Proof is not valid");
+  //   }
+  // };
+
+
+  const mintAbi = [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[2]",
+          "name": "a",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "uint256[2][2]",
+          "name": "b",
+          "type": "uint256[2][2]"
+        },
+        {
+          "internalType": "uint256[2]",
+          "name": "c",
+          "type": "uint256[2]"
+        },
+        {
+          "internalType": "uint256[4]",
+          "name": "signals",
+          "type": "uint256[4]"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
+  const provider = useProvider();
+  console.log("provider", provider);
+
+  // const solidityData = mintNftHelper(proof, pubInputs);
+  const solidityData = proof && pubInputs ? fetchSolidityData(proof, pubInputs) : [];
+
+  const { isConnected } = useConnect();
+  
+  //snarkjs.groth16ExportSolidityCallData(proof, pubInputs);
+  const { data, isError, isLoading, write } = useContractWrite(
+    {
+      addressOrName: '0x2A0F14D7E66F1b7eFe53777C3655df66790eD795',
+      contractInterface: mintAbi,
+    },
+    'mint',
+    {
+      args: solidityData
+    }
+  );
+
+  console.log("proof", proof);
+  console.log("pubInputs", pubInputs);
+  console.log('solidityData', solidityData);
+  console.log('isConnected', isConnected);
+  console.log('data', data);
+  console.log('isError', isError);
+  console.log('isLoading', isLoading);
+  console.log('write', write);
+  console.log('lol');
 
   return (
     <>
@@ -38,43 +145,48 @@ const Share: NextPage = () => {
         <Head>
           <title>ETHdos</title>
           <link rel="icon" href="/favicon.ico" />
-          <script async src="snarkjs.min.js"></script>
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Mono" />
+          {/* <script src="snarkjs.min.js"></script> */}
         </Head>
 
         <div className="flex h-full items-center justify-center text-white">
-          <div className="prose max-w-prose">
-            <div className="flex justify-between">
-              <Stepper>ZK Proof Generation</Stepper>
-            </div>
+          <div className="w-1/2">
+            <Stepper>ETHdos number</Stepper>
 
-            <Title> ETHdos number </Title>
 
             <div className="my-5">
-              <ConnectButton />
-              <div className="">
-                <textarea
-                  rows={4}
-                  name="comment"
-                  id="comment"
-                  className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5"
-                  placeholder={"Enter tweet..."}
-                  value={proof}
-                  onChange={(e) => setProof(e.target.value)}
-                />
-              </div>
-              <input
-                type="text"
-                placeholder="0xADDRESS"
-                value={friendAddr}
-                onChange={(e) => setFriendAddr(e.target.value)}
-              />
-              <text>{isValid ? "Valid address" : "Invalid Address"}</text>
-              <Button disabled={!canSign} onClick={() => signer.signMessage()}>
-                Sign Message
-              </Button>
-              <text>Sign Data: {signer.data}</text>
-              <Button>Generate Proof</Button>
-              <Button>Mint NFT</Button>
+              {stage === Stage.LOADING && <Title>{stage}</Title>}
+              {stage === Stage.INVALID && <Title>{stage}</Title>}
+              {stage === Stage.FINISHED && (
+                <>
+                  <Title>{stage}</Title>
+                  <InfoRow
+                    name="Originator"
+                    content={"0x" + BigInt(pubInputs![2]).toString(16)}
+                  />
+                  <InfoRow
+                    name="Your distance"
+                    content={parseInt(pubInputs![1]).toString()}
+                  />
+                  <InfoRow
+                    name="Share with others"
+                    content={
+                      <a href={`http://ethdos.xyz/share/${ipfsHash}`}>
+                        ethdos.xyz/share/{ipfsHash}
+                      </a>
+                    }
+                  />
+                </>
+              )}
+            </div>
+            <div className="py-2">
+              {stage === Stage.FINISHED && (
+                <>
+                <ConnectButton />
+                <br />
+                <Button onClick={() => write()} className="mr-5">Mint NFT</Button>
+                </>
+              )}
             </div>
           </div>
         </div>
