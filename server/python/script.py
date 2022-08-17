@@ -28,7 +28,7 @@ from py_ecc.fields import (
 )
 from py_ecc.bn128 import (
     bn128_curve as curve,
-    bn128_pairing as pairingw
+    bn128_pairing as pairing
 )
 import json
 import sys
@@ -39,14 +39,22 @@ if len(sys.argv) != 2:
     exit(1)
 
 input_filename = sys.argv[1]
-with open("../preinput/" + input_filename, 'r') as input_file:
+with open('preinput/' + input_filename, 'r') as input_file:
     input_data = input_file.read()
 input_json = json.loads(input_data)
+print(input_json)
+
 proof = input_json["proof"]
+
+if not input_json["proof"]:
+    with open('python/inp-0.json', 'r') as proof_file:
+        proof_data = proof_file.read()
+        proof = json.loads(proof_data)["proof"]
+    input_json["pubInputs"][3] = input_json["sinkAddress"]
+
 pubInputs = input_json["pubInputs"]
 
-
-with open('vkey.json', 'r') as vkey_file:
+with open('python/vkey.json', 'r') as vkey_file:
     vkey_data = vkey_file.read()
 vkey = json.loads(vkey_data)
 
@@ -140,13 +148,20 @@ print("proofParameters", proofParameters)
 
 # print("pubParameters", pubParameters)
 
-fullCircomInput = {**inputParameters, **proofParameters}
+sigStuff = {
+    "r": input_json["r"],
+    "s": input_json["s"],
+    "sourcePubkey": input_json["sourcePubkey"],
+    "sinkAddress": input_json["sinkAddress"]
+}
+
+fullCircomInput = {**inputParameters, **proofParameters, **sigStuff}
 
 fullCircomInput["semiPublicCommitment"] = "7138597452374049843442357986628673314690363139209617000292486089713270058062"
-fullCircomInput["degree"] = int(pubParameters[1]) + 1
-fullCircomInput["originator"] = pubParameters[2]
+fullCircomInput["degree"] = int(pubInputs[1]) + 1
+fullCircomInput["originator"] = pubInputs[2]
 
 
-with open('../input/' + input_filename, 'w') as outfile:
+with open('input/' + input_filename, 'w') as outfile:
     json.dump(fullCircomInput, outfile)
 

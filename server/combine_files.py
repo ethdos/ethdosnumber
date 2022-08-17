@@ -1,4 +1,5 @@
 import json
+import sys
 
 if len(sys.argv) != 4:
     print("Usage: python3 script.py <input_file> <pub file> <joint file>")

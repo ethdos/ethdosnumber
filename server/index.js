@@ -50,7 +50,7 @@ const startNewProcess = (hash) => {
   currentProcessesRunning.add(hash);
   prover.stderr.on("data", (data) => {
     var res = data.toString();
-    if (res.substring(0,8) === "{\"pi_a\":") {
+    if (res.length != 0) {
         outputData[hash] = res;
         // delete the relevant files in inputs folder
         // fs.unlinkSync(inputFileName);
@@ -144,7 +144,7 @@ app.post("/result", (req, res) => {
   } else if (currentProcessesRunning.has(id) || inQueue(id)) {
     console.log("waiting for result");
     console.log("currentProcessesRunning", currentProcessesRunning);
-    res.status(400).send("{\"result\": \"Process still running\"}");
+    res.status(200).send("{\"result\": \"Process still running\"}");
   } else {
     console.log("ERROR! result not found", id, queue);
     // print outputdata keys
