@@ -9,7 +9,7 @@ export default async function handler(
   let { ipfsHash } = req.query;
   console.log(`Received request: ${JSON.stringify(ipfsHash)}`);
   try {
-    const data = await readFromIpfs(ipfsHash.toString());
+    const data = await readFromIpfs(ipfsHash!.toString());
     console.log(`Got data from ipfs: ${data}`);
     res.status(200).json(data);
   } catch (e) {

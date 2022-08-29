@@ -38,7 +38,7 @@ library NFTSVG {
                         params.degree
                     ),
                     generateSVGCardMantle(params.degree),
-                    generateSVGRareSparkle(params.tokenId),
+                    generateSVGLogo(),
                     '</svg>'
                 )
             );
@@ -123,7 +123,7 @@ library NFTSVG {
                 '<rect style="filter: url(#f1)" x="0px" y="0px" width="290px" height="500px" />',
                 ' <g style="filter:url(#top-region-blur); transform:scale(1.5); transform-origin:center top;">',
                 '<rect fill="none" x="0px" y="0px" width="290px" height="500px" />',
-                '<ellipse cx="50%" cy="0px" rx="180px" ry="120px" fill="#000" opacity="0.85" /></g>',
+                '<ellipse cx="50%" cy="0px" rx="180px" ry="120px" fill="#041C32" opacity="0.85" /></g>',
                 '<rect x="0" y="0" width="290" height="500" rx="42" ry="42" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.2)" /></g>'
             )
         );
@@ -189,19 +189,15 @@ library NFTSVG {
         );
     }
 
-    function generateSVGRareSparkle(uint256 tokenId) private pure returns (string memory svg) {
-        if (tokenId < 25) {
-            svg = string(
-                abi.encodePacked(
-                    '<g style="transform:translate(84px, 300px) scale(5)"><path d="M4.40434 13.6099C3.51517 13.1448 3 12.5924 3 12C3 10.3431 7.02944 9 12 9C16.9706 9 21 10.3431 21 12C21 12.7144 20.2508 13.3705 19 13.8858" stroke="white"  stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
-                    '<path d="M12 11.01L12.01 10.9989" stroke="white" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
-                    '<path d="M16.8827 6C16.878 4.97702 16.6199 4.25309 16.0856 3.98084C14.6093 3.22864 11.5832 6.20912 9.32664 10.6379C7.07005 15.0667 6.43747 19.2668 7.91374 20.019C8.44117 20.2877 9.16642 20.08 9.98372 19.5" stroke="white"  stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
-                    '<path d="M9.60092 4.25164C8.94056 3.86579 8.35719 3.75489 7.91369 3.98086C6.43742 4.73306 7.06999 8.93309 9.32658 13.3619C11.5832 17.7907 14.6092 20.7712 16.0855 20.019C17.3977 19.3504 17.0438 15.9577 15.3641 12.1016" stroke="white"  stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
-                    '<animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="10s" repeatCount="indefinite"/></g>'
-                )
-            );
-        } else {
-            svg = '';
-        }
+    function generateSVGLogo() private pure returns (string memory svg) {
+        svg = string(
+            abi.encodePacked(
+                '<g style="transform:translate(84px, 300px) scale(5)"><g><path d="M4.40434 13.6099C3.51517 13.1448 3 12.5924 3 12C3 10.3431 7.02944 9 12 9C16.9706 9 21 10.3431 21 12C21 12.7144 20.2508 13.3705 19 13.8858" stroke="white"  stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+                '<path d="M12 11.01L12.01 10.9989" stroke="white" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+                '<path d="M16.8827 6C16.878 4.97702 16.6199 4.25309 16.0856 3.98084C14.6093 3.22864 11.5832 6.20912 9.32664 10.6379C7.07005 15.0667 6.43747 19.2668 7.91374 20.019C8.44117 20.2877 9.16642 20.08 9.98372 19.5" stroke="white"  stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+                '<path d="M9.60092 4.25164C8.94056 3.86579 8.35719 3.75489 7.91369 3.98086C6.43742 4.73306 7.06999 8.93309 9.32658 13.3619C11.5832 17.7907 14.6092 20.7712 16.0855 20.019C17.3977 19.3504 17.0438 15.9577 15.3641 12.1016" stroke="white"  stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+                '<animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="10s" repeatCount="indefinite"/></g></g>'
+            )
+        );
     }
 }

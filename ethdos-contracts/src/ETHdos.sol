@@ -16,6 +16,7 @@ contract ETHdos is ERC721Enumerable {
     using HexStrings for uint256;
     using SafeMath for uint256;
     using Strings for uint256;
+    using Strings for address;
 
     Counters.Counter private tokenCounter;
 
@@ -79,13 +80,17 @@ contract ETHdos is ERC721Enumerable {
             bytes(
                 string(
                     abi.encodePacked(
-                        '{"origin": "',
-                        abi.encodePacked(tokenIdtoMetadata[tokenId].originAddress),
-                        '", "owner": "',
-                        abi.encodePacked(tokenIdtoMetadata[tokenId].sinkAddress),
-                        '", "degree": "',
-                        tokenIdtoMetadata[tokenId].degree,
-                        '", "description": "ETHdos are Erdos number NFTs on Ethereum. They prove your degree of seperation from the origin address without revealing anything about the friend path to the world (and yourself). ETHDos uses recursive ZK SNARKs to instrument this social experiment.", "image": "data:image/svg+xml;base64,',
+                        '{"attributes":[ ',
+                        '{"trait_type": "Origin",',
+                        '"value": "',
+                        tokenIdtoMetadata[tokenId].originAddress.toHexString(),
+                        '"}, {"trait_type": "Owner",',
+                        '"value": "',
+                        tokenIdtoMetadata[tokenId].sinkAddress.toHexString(),
+                        '"}, {"trait_type": "Degree",',
+                        '"value": "',
+                        tokenIdtoMetadata[tokenId].degree.toString(),
+                        '"}], "description": "ETHdos are Erdos number NFTs on Ethereum. They prove your degree of seperation from the origin address without revealing anything about the friend path to the world (and yourself). ETHDos uses recursive ZK SNARKs to instrument this social experiment.", "image": "data:image/svg+xml;base64,',
                         Base64.encode(bytes(svgOutput)),
                         '"}'
                     )
@@ -109,6 +114,7 @@ contract ETHdos is ERC721Enumerable {
         TokenMetadata memory meta = tokenIdtoMetadata[tokenId];
 
         require(meta.sinkAddress == msg.sender, "Invalid Sender");
+        // require(meta.originAddress == 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, "Invalid Origin, not vitalik.eth");
         // require(Verifier.verifyProof(a, b, c, signals), "Invalid Proof");
         require(attrToTokenID[meta.originAddress][meta.sinkAddress][meta.degree] == 0, "NFT already exists");
         attrToTokenID[meta.originAddress][meta.sinkAddress][meta.degree] = tokenId;

@@ -13,15 +13,17 @@
     "@heroicons/react": "^1.0.6",
     "@rainbow-me/rainbowkit": "^0.3.4",
     "big-integer": "^1.6.51",
+    "daisyui": "^2.24.0",
     "ethers": "^5.6.9",
+    "iconoir": "^5.2.0",
     "ipfs-http-client": "^57.0.3",
     "next": "^12.1.6",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "react-parallax-tilt": "^1.7.60",
     "react-spinners": "^0.12.0",
     "snarkjs": "^0.4.22",
-    "styled-components": "^5.3.5",
-    "wagmi": "^0.4.2"
+    "styled-components": "^5.3.5"
   },
   "devDependencies": {
     "@types/node": "^17.0.35",
