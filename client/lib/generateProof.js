@@ -138,13 +138,14 @@ export function generateProofInputs(
 }
 
 export const getVerificationKey = async () => {
-  return await fetch("./verification_key.json").then(function (res) {
+  return await fetch("/verification_key.json").then(function (res) {
     return res.json();
   });
 };
 
 export const checkProof = async function (proof, publicSignals) {
   const vKey = await getVerificationKey();
+  console.log("vKey", vKey);
 
   const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
   return res;
@@ -158,9 +159,12 @@ export const checkProof = async function (proof, publicSignals) {
 export const fetchSolidityData = (proof, pub) => {
   const x = [
     [intToHex(proof.pi_a[0]), intToHex(proof.pi_a[1])],
-    [[intToHex(proof.pi_b[0][1]), intToHex(proof.pi_b[0][0])], [intToHex(proof.pi_b[1][1]), intToHex(proof.pi_b[1][0])]],
+    [
+      [intToHex(proof.pi_b[0][1]), intToHex(proof.pi_b[0][0])],
+      [intToHex(proof.pi_b[1][1]), intToHex(proof.pi_b[1][0])],
+    ],
     [intToHex(proof.pi_c[0]), intToHex(proof.pi_c[1])],
     pub.map((x) => intToHex(x)),
-  ]
+  ];
   return x;
-}
+};

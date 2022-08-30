@@ -560,49 +560,6 @@ const Share: NextPage = () => {
             </div>
           </section>
         </div>
-
-        {/* <div className="flex h-full items-center justify-center text-white">
-          <div className="w-1/2">
-            <Stepper>ETHdos number</Stepper>
-
-            <div className="my-5">
-              {stage === Stage.LOADING && <Title>{stage}</Title>}
-              {stage === Stage.INVALID && <Title>{stage}</Title>}
-              {stage === Stage.FINISHED && (
-                <>
-                  <Title>{stage}</Title>
-                  <InfoRow
-                    name="Originator"
-                    content={"0x" + BigInt(pubInputs![2]).toString(16)}
-                  />
-                  <InfoRow
-                    name="Your distance"
-                    content={parseInt(pubInputs![1]).toString()}
-                  />
-                  <InfoRow
-                    name="Share with others"
-                    content={
-                      <a href={`http://ethdos.xyz/share/${ipfsHash}`}>
-                        ethdos.xyz/share/{ipfsHash}
-                      </a>
-                    }
-                  />
-                </>
-              )}
-            </div>
-            <div className="py-2">
-              {stage === Stage.FINISHED && (
-                <>
-                  <ConnectButton />
-                  <br />
-                  <Button onClick={() => write()} className="mr-5">
-                    Mint NFT
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div> */}
       </div>
     </>
   );

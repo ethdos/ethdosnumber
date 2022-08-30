@@ -24,8 +24,7 @@ import Iconoir from "iconoir/icons/atom.svg";
 import Tilt from "react-parallax-tilt";
 import NFTSvg from "../nftTemplate";
 import Header from "../components/header";
-import ReactModal from 'react-modal';
-
+import ReactModal from "react-modal";
 
 // const snarkjs = require("snarkjs");
 
@@ -34,7 +33,6 @@ enum Stage {
   INVALID = "Invalid IPFS hash :(",
   FINISHED = "Proof information",
 }
-
 
 const Share: NextPage = () => {
   const router = useRouter();
@@ -45,7 +43,7 @@ const Share: NextPage = () => {
   const [pubInputs, setPubInputs] = useState<any>(null);
   const [inspectModalOpen, setInspectModalOpen] = useState<boolean>(false);
 
-  const [verifyStatus, setVerifyStatus] = useState<string>("Verify proof");
+  const [verifyStatus, setVerifyStatus] = useState<string>("Check ZK proof");
   const rawAddress =
     pubInputs && pubInputs.length > 3
       ? ethers.utils.getAddress("0x" + BigInt(pubInputs![3]).toString(16))
@@ -61,8 +59,8 @@ const Share: NextPage = () => {
   const cleanAddress = ensData
     ? ensData
     : rawAddress
-      ? rawAddress.slice(0, 4) + "..." + rawAddress.slice(-4)
-      : undefined;
+    ? rawAddress.slice(0, 4) + "..." + rawAddress.slice(-4)
+    : undefined;
 
   useEffect(() => {
     async function getHash() {
@@ -84,19 +82,20 @@ const Share: NextPage = () => {
     }
   }, [ipfsHash]);
 
-  // const verifyProofInBrowser = async () => {
-  //   setVerifyStatus("Verifying...");
-  //   try {
-  //     const proofVerified = await checkProof(proof, pubInputs);
-  //     if (proofVerified) {
-  //       setVerifyStatus("Verified ✅");
-  //     } else {
-  //       setVerifyStatus("Proof is not valid");
-  //     }
-  //   } catch {
-  //     setVerifyStatus("Proof is not valid");
-  //   }
-  // };
+  const verifyProofInBrowser = async () => {
+    setVerifyStatus("Verifying proof...");
+    try {
+      const proofVerified = await checkProof(proof, pubInputs);
+      if (proofVerified) {
+        setVerifyStatus("✅ ZK proof verified!");
+      } else {
+        setVerifyStatus("❌ Verification failed!");
+      }
+    } catch (e) {
+      console.log("verification error", e);
+      setVerifyStatus("❌ Verification failed!");
+    }
+  };
 
   const mintAbi = [
     {
@@ -187,6 +186,10 @@ const Share: NextPage = () => {
     return friendsString;
   };
 
+  const sleep = (milliseconds: number) => {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  };
+
   return (
     <>
       <div className="min-h-screen h-full bg-[url('/gradient.jpeg')] bg-no-repeat bg-auto">
@@ -197,7 +200,7 @@ const Share: NextPage = () => {
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Space+Mono"
           />
-          {/* <script src="snarkjs.min.js"></script> */}
+          <script src="/snarkjs.min.js"></script>
         </Head>
         <Header isConnected={isConnected} />
 
@@ -243,34 +246,40 @@ const Share: NextPage = () => {
                   </p>
 
                   <div>
-                    <a
+                    <button
                       className="inline-flex items-center px-8 py-3 mt-8 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
-                      href="/get-started"
+                      onClick={() => {
+                        if (verifyStatus === "Check ZK proof") {
+                          verifyProofInBrowser();
+                        }
+                      }}
                     >
                       <span className="text-sm font-medium">
-                        Check ZK proof
+                        {verifyStatus}
                       </span>
-                    </a>
+                    </button>
                     <button
                       className="text-sm font-medium ml-8 hover:text-gray-500/75 text-black"
-                      onClick={() => setInspectModalOpen(true)
-                      }
+                      onClick={() => setInspectModalOpen(true)}
                     >
                       ↗ Inspect ZK proof
                     </button>
                     <ReactModal
                       isOpen={inspectModalOpen}
                       ariaHideApp={false}
+                      onRequestClose={(e) => setInspectModalOpen(false)}
                     >
                       <button
-                        className="text-sm font-medium border-black-600"
+                        className="mb-4 text-sm font-medium border-black-600 justify-right mr-0 ml-auto block align-right text-black hover:text-gray-500/75"
                         onClick={() => setInspectModalOpen(false)}
                       >
                         Close
                       </button>
                       <div className="text-sm font-medium space-y-4">
-                        This data is enough to verify your claim without the verifier learning any other information about your claim.
-                        <pre>
+                        This data is enough to verify your claim without the
+                        verifier learning any other information about your
+                        claim:
+                        <pre className="mt-4">
                           {JSON.stringify(proof, null, 2)}
                         </pre>
                       </div>
@@ -284,20 +293,157 @@ const Share: NextPage = () => {
                     </div>
                     <div className="collapse-content p-0">
                       <div className="grid grid-cols-1 space-y-4">
-                        <a href="/get-started">
+                        <a href={"/send/" + ipfsHash}>
                           <div className="min-h-76 inline-flex items-center px-6 py-4 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring">
                             <span className="text-sm font-medium text-center">
                               Expand the graph
                             </span>
                           </div>
                         </a>
-                        <a href="/get-started">
-                          <div className="min-h-76 inline-flex items-center px-6 py-4 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring">
-                            <span className="text-sm font-medium">
-                              Connect wallet &amp; mint NFT
-                            </span>
+
+                        {!isConnected && (
+                          <div>
+                            <ConnectButton.Custom>
+                              {({
+                                account,
+                                chain,
+                                openAccountModal,
+                                openChainModal,
+                                openConnectModal,
+                                authenticationStatus,
+                                mounted,
+                              }) => {
+                                // Note: If your app doesn't use authentication, you
+                                // can remove all 'authenticationStatus' checks
+                                const ready =
+                                  mounted && authenticationStatus !== "loading";
+                                const connected =
+                                  ready &&
+                                  account &&
+                                  chain &&
+                                  (!authenticationStatus ||
+                                    authenticationStatus === "authenticated");
+
+                                return (
+                                  <div
+                                    {...(!ready && {
+                                      "aria-hidden": true,
+                                      style: {
+                                        opacity: 0,
+                                        pointerEvents: "none",
+                                        userSelect: "none",
+                                      },
+                                    })}
+                                  >
+                                    {(() => {
+                                      if (!connected) {
+                                        return (
+                                          <button
+                                            onClick={openConnectModal}
+                                            type="button"
+                                            className="inline-flex items-center px-8 py-3 mt-8 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
+                                          >
+                                            <span className="text-sm font-medium">
+                                              Connect wallet &amp; mint NFT
+                                            </span>
+                                          </button>
+                                        );
+                                      }
+
+                                      if (chain.unsupported) {
+                                        return (
+                                          <button
+                                            onClick={openChainModal}
+                                            type="button"
+                                            className="inline-flex items-center px-8 py-3 mt-8 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
+                                          >
+                                            <span className="text-sm font-medium">
+                                              Wrong network
+                                            </span>
+                                          </button>
+                                        );
+                                      }
+
+                                      return (
+                                        <div
+                                          style={{ display: "flex", gap: 12 }}
+                                        >
+                                          <button
+                                            onClick={openChainModal}
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                            }}
+                                            type="button"
+                                          >
+                                            {chain.hasIcon && (
+                                              <div
+                                                style={{
+                                                  background:
+                                                    chain.iconBackground,
+                                                  width: 12,
+                                                  height: 12,
+                                                  borderRadius: 999,
+                                                  overflow: "hidden",
+                                                  marginRight: 4,
+                                                }}
+                                              >
+                                                {chain.iconUrl && (
+                                                  <img
+                                                    alt={
+                                                      chain.name ?? "Chain icon"
+                                                    }
+                                                    src={chain.iconUrl}
+                                                    style={{
+                                                      width: 12,
+                                                      height: 12,
+                                                    }}
+                                                  />
+                                                )}
+                                              </div>
+                                            )}
+                                            {chain.name}
+                                          </button>
+
+                                          <button
+                                            onClick={openAccountModal}
+                                            type="button"
+                                          >
+                                            {account.displayName}
+                                            {account.displayBalance
+                                              ? ` (${account.displayBalance})`
+                                              : ""}
+                                          </button>
+                                        </div>
+                                      );
+                                    })()}
+                                  </div>
+                                );
+                              }}
+                            </ConnectButton.Custom>
                           </div>
-                        </a>
+                        )}
+
+                        {isConnected && (
+                          <button
+                            className="d-block ml-0 mr-auto"
+                            onClick={async () => {
+                              if (isError) {
+                                console.log("errored loading");
+                              }
+                              while (isLoading) {
+                                await sleep(500);
+                              }
+                              write!();
+                            }}
+                          >
+                            <div className="min-h-76 inline-flex items-center px-6 py-4 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring">
+                              <span className="text-sm font-medium">
+                                Mint NFT
+                              </span>
+                            </div>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -306,49 +452,6 @@ const Share: NextPage = () => {
             </div>
           </section>
         </div>
-
-        {/* <div className="flex h-full items-center justify-center text-white">
-          <div className="w-1/2">
-            <Stepper>ETHdos number</Stepper>
-
-            <div className="my-5">
-              {stage === Stage.LOADING && <Title>{stage}</Title>}
-              {stage === Stage.INVALID && <Title>{stage}</Title>}
-              {stage === Stage.FINISHED && (
-                <>
-                  <Title>{stage}</Title>
-                  <InfoRow
-                    name="Originator"
-                    content={"0x" + BigInt(pubInputs![2]).toString(16)}
-                  />
-                  <InfoRow
-                    name="Your distance"
-                    content={parseInt(pubInputs![1]).toString()}
-                  />
-                  <InfoRow
-                    name="Share with others"
-                    content={
-                      <a href={`http://ethdos.xyz/share/${ipfsHash}`}>
-                        ethdos.xyz/share/{ipfsHash}
-                      </a>
-                    }
-                  />
-                </>
-              )}
-            </div>
-            <div className="py-2">
-              {stage === Stage.FINISHED && (
-                <>
-                  <ConnectButton />
-                  <br />
-                  <Button onClick={() => write()} className="mr-5">
-                    Mint NFT
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div> */}
       </div>
     </>
   );
