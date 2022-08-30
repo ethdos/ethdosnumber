@@ -1,79 +1,171 @@
-import { useEffect, useState } from "react";
-
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
-import Head from "next/head";
 import { useRouter } from "next/router";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useEnsAddress, useSignMessage } from "wagmi";
-import { getAddress } from "ethers/lib/utils";
+import Head from "next/head";
+import { useEffect, useState } from "react";
+
+import { Stepper, Title, Button } from "../../components/Base";
+import InfoRow from "../../components/InfoRow";
+import Slideover from "../../components/Slideover";
 import {
+  checkProof,
+  fetchSolidityData,
   generateProofInputs,
-  hexStringTobigInt,
   postData,
 } from "../../lib/generateProof";
-import { Stepper, Title, Button } from "../../components/Base";
-import LoadingText from "../../components/LoadingText";
-import InfoRow from "../../components/InfoRow";
+import {
+  useProvider,
+  useContractWrite,
+  useConnect,
+  useContractRead,
+  useEnsName,
+  chain,
+  usePrepareContractWrite,
+  useAccount,
+  useEnsAddress,
+  useSignMessage,
+} from "wagmi";
+import { ethers } from "ethers";
+import Iconoir from "iconoir/icons/atom.svg";
+import Tilt from "react-parallax-tilt";
+import NFTSvg from "../nftTemplate";
+import Header from "../components/header";
+
+// const snarkjs = require("snarkjs");
 
 enum Stage {
-  LOADING = "Loading...",
-  INVALID = "Invalid IPFS hash :(",
-  PASTEPROOF = "Paste in your proof...",
-  ADDRESS = "Choose an address or ENS name to send to...",
-  ORIGIN = "You are the origin! Choose an address or ENS name to send to...",
-  GENERATING = "Generating...",
-  ERROR = "Error on server, retry later :(",
-  FINISHED = "Finished!",
+  LOADING,
+  INVALID,
+  FINISHED,
+  CONNECTED_WALLET,
+  ENTERED_ADDRESS,
+  SIGNED_MESSAGE,
+  GENERATING_PROOF,
+  DONE,
+  ERROR,
 }
 
-const backendUrl = "https://backend.ethdos.xyz/";
-
-const Send: NextPage = () => {
+const Share: NextPage = () => {
+  const backendUrl = "https://backend.ethdos.xyz/";
   const router = useRouter();
   const { ipfsHash } = router.query;
-  const [stage, setStage] = useState<Stage>(Stage.LOADING);
 
-  const [originalProof, setOriginalProof] = useState(null);
-  const [validOriginalProof, setValidOriginalProof] = useState(false);
-  const [originalPubInputs, setOriginalPubInputs] = useState<null | string[]>(
-    null
-  );
-  const [originator, setOriginator] = useState<string>("");
-  const [degree, setDegree] = useState<number>(0);
+  const [stage, setStage] = useState<any>(Stage.LOADING);
+  const [originalProof, setOriginalProof] = useState<any>(null);
+  const [originalPubInputs, setOriginalPubInputs] = useState<any>(null);
 
-  const [proof, setProof] = useState(null);
-  const [pubInputs, setPubInputs] = useState(null);
-
-  const [sourceAddress, setSourceAddress] = useState<string>("");
-  const [sinkAddress, setSinkAddress] = useState<string>("");
-
+  const [verifyStatus, setVerifyStatus] = useState<string>("Verify proof");
+  const rawAddress =
+    originalPubInputs && originalPubInputs.length > 3
+      ? ethers.utils.getAddress(
+          "0x" + BigInt(originalPubInputs![3]).toString(16)
+        )
+      : undefined;
+  const degree =
+    originalPubInputs && originalPubInputs.length > 1
+      ? parseInt(originalPubInputs[1]).toString()
+      : undefined;
+  const [friendInput, setFriendInput] = useState<string>("");
+  const [parsedFriendInput, setParsedFriendInput] = useState<string>("");
+  const [parseError, setParseError] = useState<string>("");
   const [sinkIpfsHash, setSinkIpfsHash] = useState<string>("");
-
-  const { data, isError, isLoading } = useEnsAddress({
-    name: sinkAddress,
+  const ensReverseAddr = useEnsAddress({
+    name: friendInput,
+    chainId: 1,
   });
-  const ensValid = !!data && !isError && !isLoading;
-  try {
-    var rawValid: string | undefined = getAddress(sinkAddress);
-  } catch (error) {
-    var rawValid: string | undefined = undefined;
-  }
-  const validAddress = ensValid || rawValid;
-  const correctAddr = !!rawValid ? rawValid : data;
-  const signMessage = "ETHdos friend: " + (correctAddr + "").toLowerCase();
-  const signer = useSignMessage({
-    message: signMessage,
+  const signatureMessage =
+    "ETHdos friend: " + (parsedFriendInput + "").toLowerCase();
+  const signer = useSignMessage();
+  const parsedFriendInputNormalised = parsedFriendInput
+    ? ethers.utils.getAddress(parsedFriendInput)
+    : "";
+  const { data: ensFriendData } = useEnsName({
+    address: parsedFriendInputNormalised,
+    chainId: chain.mainnet.id,
   });
+  const cleanFriendAddress = ensFriendData
+    ? ensFriendData
+    : parsedFriendInputNormalised
+    ? parsedFriendInputNormalised.slice(0, 4) +
+      "..." +
+      parsedFriendInputNormalised.slice(-4)
+    : undefined;
 
-  // generate ZK proof given original proof and sink address
+  useEffect(() => {
+    async function getHash() {
+      const resp = await fetch(`/api/getproof/${ipfsHash}`);
+      const respData = await resp.json();
+
+      if (!resp.ok) {
+        setStage(Stage.INVALID);
+        return;
+      }
+
+      setOriginalProof(respData.proof);
+      setOriginalPubInputs(respData.pubInputs);
+      setStage(Stage.FINISHED);
+    }
+
+    if (ipfsHash) {
+      getHash();
+    }
+  }, [ipfsHash]);
+
+  // const verifyProofInBrowser = async () => {
+  //   setVerifyStatus("Verifying...");
+  //   try {
+  //     const proofVerified = await checkProof(proof, pubInputs);
+  //     if (proofVerified) {
+  //       setVerifyStatus("Verified ✅");
+  //     } else {
+  //       setVerifyStatus("Proof is not valid");
+  //     }
+  //   } catch {
+  //     setVerifyStatus("Proof is not valid");
+  //   }
+  // };
+
+  const parseAddressOrENS = async () => {
+    while (ensReverseAddr.isLoading) {
+      await sleep(500);
+    }
+    console.log("not loading");
+    if (ensReverseAddr.data) {
+      setParseError("");
+      setParsedFriendInput(ensReverseAddr.data);
+      const ensSignatureMessage =
+        "ETHdos friend: " + ensReverseAddr.data.toLowerCase();
+      return ensSignatureMessage;
+    } else if (ethers.utils.isAddress(friendInput)) {
+      setParseError("");
+      setParsedFriendInput(ethers.utils.getAddress(friendInput).toLowerCase());
+      const normalSignatureMessage =
+        "ETHdos friend: " + ethers.utils.getAddress(friendInput).toLowerCase();
+      return normalSignatureMessage;
+    } else {
+      setParseError("Invalid address or ENS name");
+      setParsedFriendInput("");
+      return "";
+    }
+  };
+
+  const sleep = (milliseconds: number) => {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  };
+
   const generateZKProof = async () => {
+    if (parseError != "") {
+      return;
+    }
+    const signatureMessage =
+      "ETHdos friend: " + (parsedFriendInput + "").toLowerCase();
     const inputs = generateProofInputs(
       originalProof,
       originalPubInputs,
-      correctAddr,
+      parsedFriendInput,
       signer.data,
-      signMessage
+      signatureMessage
     );
     console.log("inputs", inputs);
     if (!inputs) return;
@@ -107,8 +199,8 @@ const Send: NextPage = () => {
             setStage(Stage.ERROR);
           }
         } else {
-          setProof(json.proof);
-          setPubInputs(json.pubInputs);
+          setOriginalProof(json.proof);
+          setOriginalPubInputs(json.pubInputs);
           clearInterval(intervalId);
           const resp = await fetch("/api/storeproof", {
             method: "POST",
@@ -116,8 +208,8 @@ const Send: NextPage = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              proof,
-              pubInputs,
+              originalProof,
+              originalPubInputs,
             }),
           });
           const respData = await resp.json();
@@ -132,49 +224,48 @@ const Send: NextPage = () => {
     }, 10000);
   };
 
-  const updateOriginalProof = (data: any) => {
-    setOriginalProof(data.proof);
-    setOriginalPubInputs(data.pubInputs);
-    setOriginator("0x" + BigInt(data.pubInputs![2]).toString(16));
-    setDegree(parseInt(data.pubInputs![1]));
-    setSourceAddress("0x" + BigInt(data.pubInputs.slice(-1)[0]).toString(16));
+  const { connector: activeConnector, isConnected } = useAccount();
+  console.log("activeConnector", activeConnector);
+  const {
+    connect,
+    connectors,
+    error,
+    isLoading: isConnectLoading,
+    pendingConnector,
+  } = useConnect({ connector: activeConnector });
+
+  //snarkjs.groth16ExportSolidityCallData(proof, pubInputs);
+
+  useEffect(() => {
+    console.log("isConnected", isConnected);
+    if (isConnected) {
+      setStage(Stage.CONNECTED_WALLET);
+    }
+  }, [isConnected, stage]);
+
+  console.log("proof", originalProof);
+  console.log("pubInputs", originalPubInputs);
+  console.log("isConnected", isConnected);
+  console.log("lol");
+  console.log("ensData", cleanFriendAddress);
+
+  const getFriendShipDist = (degree: string) => {
+    const degreeNum = parseInt(degree);
+    const friends = Array(degreeNum).fill("a friend");
+    const friendsString = friends.join(" of ");
+    return friendsString;
   };
 
   useEffect(() => {
-    async function getHash() {
-      if (ipfsHash === "origin") {
-        setStage(Stage.ORIGIN);
-        return;
-      }
-
-      if (ipfsHash === "paste") {
-        setStage(Stage.PASTEPROOF);
-        return;
-      }
-
-      const resp = await fetch(`/api/getproof/${ipfsHash}`);
-      if (!resp.ok) {
-        setStage(Stage.INVALID);
-        return;
-      }
-      const respData = JSON.parse(await resp.json());
-      updateOriginalProof(respData);
-      setStage(Stage.ADDRESS);
+    if (signer.data) {
+      console.log("setting stage to SIGNED_MESSAGE");
+      setStage(Stage.SIGNED_MESSAGE);
     }
-
-    if (ipfsHash) {
-      getHash();
-    }
-  }, [ipfsHash]);
-
-  if ((stage == Stage.ADDRESS || stage === Stage.ORIGIN) && signer.isSuccess) {
-    setStage(Stage.GENERATING);
-    generateZKProof();
-  }
+  }, [signer]);
 
   return (
     <>
-      <div className="h-screen">
+      <div className="min-h-screen h-full bg-[url('/gradient.jpeg')] bg-no-repeat bg-auto">
         <Head>
           <title>ETHdos</title>
           <link rel="icon" href="/favicon.ico" />
@@ -182,271 +273,339 @@ const Send: NextPage = () => {
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Space+Mono"
           />
-          <script async src="snarkjs.min.js"></script>
+          {/* <script src="snarkjs.min.js"></script> */}
         </Head>
+        <Header isConnected={isConnected} />
 
-        <div className="flex h-full items-center justify-center text-white">
+        <div className="container mt-3 m-auto align-center place-content-center justify-items-center place-self-center place-items-center">
+          <section>
+            <div className="max-w-screen-xl px-4 py-16 mx-auto sm:px-6 lg:px-8 justify-center align-center">
+              <div className="grid grid-cols-1 gap-72 lg:gap-16 lg:grid-cols-2">
+                <div className="relative h-64 rounded-lg sm:h-80 lg:h-full lg:order-last mb-1">
+                  <Tilt
+                    className="tilt-img"
+                    tiltMaxAngleX={7}
+                    tiltMaxAngleY={15}
+                    perspective={800}
+                    scale={1}
+                    transitionSpeed={2000}
+                    gyroscope={true}
+                  >
+                    <NFTSvg
+                      originAddress={
+                        "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+                      }
+                      sinkAddress={rawAddress || ""}
+                      degree={degree || ""}
+                    />
+                  </Tilt>
+                </div>
+
+                {stage == Stage.FINISHED && (
+                  <div className="lg:pt-4">
+                    <h2 className="text-3xl font-bold sm:text-4xl text-black">
+                      Expand the ETHdos graph
+                    </h2>
+
+                    <p className="mt-4 text-gray-600">
+                      🧙‍♂️ A chain of {degree} people have stewarded you into the
+                      ETHdos graph. Use your power to expand the graph wisely.
+                    </p>
+
+                    <p className="mt-4 text-gray-600">
+                      👯 Invite a friend to be the next link in the chain,
+                      assigning them degree {parseInt(degree || "0") + 1}.
+                    </p>
+
+                    <div>
+                      <ConnectButton.Custom>
+                        {({
+                          account,
+                          chain,
+                          openAccountModal,
+                          openChainModal,
+                          openConnectModal,
+                          authenticationStatus,
+                          mounted,
+                        }) => {
+                          // Note: If your app doesn't use authentication, you
+                          // can remove all 'authenticationStatus' checks
+                          const ready =
+                            mounted && authenticationStatus !== "loading";
+                          const connected =
+                            ready &&
+                            account &&
+                            chain &&
+                            (!authenticationStatus ||
+                              authenticationStatus === "authenticated");
+
+                          return (
+                            <div
+                              {...(!ready && {
+                                "aria-hidden": true,
+                                style: {
+                                  opacity: 0,
+                                  pointerEvents: "none",
+                                  userSelect: "none",
+                                },
+                              })}
+                            >
+                              {(() => {
+                                if (!connected) {
+                                  return (
+                                    <button
+                                      onClick={openConnectModal}
+                                      type="button"
+                                      className="inline-flex items-center px-8 py-3 mt-8 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
+                                    >
+                                      <span className="text-sm font-medium">
+                                        Connect wallet to begin
+                                      </span>
+                                    </button>
+                                  );
+                                }
+
+                                if (chain.unsupported) {
+                                  return (
+                                    <button
+                                      onClick={openChainModal}
+                                      type="button"
+                                      className="inline-flex items-center px-8 py-3 mt-8 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
+                                    >
+                                      <span className="text-sm font-medium">
+                                        Wrong network
+                                      </span>
+                                    </button>
+                                  );
+                                }
+
+                                return (
+                                  <div style={{ display: "flex", gap: 12 }}>
+                                    <button
+                                      onClick={openChainModal}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                      type="button"
+                                    >
+                                      {chain.hasIcon && (
+                                        <div
+                                          style={{
+                                            background: chain.iconBackground,
+                                            width: 12,
+                                            height: 12,
+                                            borderRadius: 999,
+                                            overflow: "hidden",
+                                            marginRight: 4,
+                                          }}
+                                        >
+                                          {chain.iconUrl && (
+                                            <img
+                                              alt={chain.name ?? "Chain icon"}
+                                              src={chain.iconUrl}
+                                              style={{ width: 12, height: 12 }}
+                                            />
+                                          )}
+                                        </div>
+                                      )}
+                                      {chain.name}
+                                    </button>
+
+                                    <button
+                                      onClick={openAccountModal}
+                                      type="button"
+                                    >
+                                      {account.displayName}
+                                      {account.displayBalance
+                                        ? ` (${account.displayBalance})`
+                                        : ""}
+                                    </button>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          );
+                        }}
+                      </ConnectButton.Custom>
+                    </div>
+                    {error && <div>{error.message}</div>}
+                  </div>
+                )}
+                {stage == Stage.CONNECTED_WALLET && (
+                  <div className="lg:pt-4">
+                    <h2 className="text-3xl font-bold sm:text-4xl text-black">
+                      Expand the ETHdos graph
+                    </h2>
+
+                    <p className="mt-4 text-gray-600">
+                      🧙‍♂️ A chain of {degree} people have stewarded you into the
+                      ETHdos graph. Use your power to expand the graph wisely.
+                    </p>
+
+                    <p className="mt-4 text-gray-600">
+                      👯 Invite a friend to be the next link in the chain,
+                      assigning them degree {parseInt(degree || "0") + 1}.
+                    </p>
+
+                    <div>
+                      <div className="mt-4 form-control w-full">
+                        <label className="label">
+                          <span className="label-text text-gray-600">
+                            Enter your friend's address or ENS name:
+                          </span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Type here"
+                          className="input input-bordered w-full max-w-xs bg-[#F7F5F2] text-gray-500"
+                          value={friendInput}
+                          onChange={(e) => {
+                            setFriendInput(e.target.value);
+                          }}
+                        />
+                        <label className="label">
+                          <span className="label-text-alt text-red-600">
+                            {parseError}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <button
+                        className="inline-flex items-center px-8 py-3 mt-4 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
+                        onClick={async () => {
+                          const proceed = await parseAddressOrENS();
+                          if (proceed === "") {
+                            return;
+                          }
+                          signer.signMessage({ message: proceed });
+                        }}
+                      >
+                        <span className="text-sm font-medium">
+                          Authenticate friendship
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {(stage == Stage.SIGNED_MESSAGE ||
+                  stage == Stage.GENERATING_PROOF) && (
+                  <div className="lg:pt-4">
+                    <h2 className="text-3xl font-bold sm:text-4xl text-black">
+                      Expand the ETHdos graph
+                    </h2>
+
+                    <p className="mt-4 text-gray-600">
+                      🧙‍♂️ A chain of {degree} people stewarded you into the
+                      ETHdos graph. You have now chosen to extend this chain by
+                      inviting {cleanFriendAddress}, assigning them degree{" "}
+                      {parseInt(degree || "0") + 1}.
+                    </p>
+
+                    <p className="mt-4 text-gray-600">
+                      🎰 Kick off the proof generation on the remote SNARK
+                      proving server when you are ready. Generation will take a
+                      while (upto 20 minutes). Leave the tab open in the
+                      background in the meantime.
+                    </p>
+
+                    <div>
+                      <button
+                        className="inline-flex items-center px-8 py-3 mt-4 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
+                        onClick={() => {
+                          generateZKProof();
+                        }}
+                      >
+                        <span className="text-sm font-medium">
+                          {stage == Stage.GENERATING_PROOF
+                            ? "Generating ZK proof..."
+                            : "Generate ZK proof"}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {stage == Stage.DONE && (
+                  <div className="lg:pt-4">
+                    <h2 className="text-3xl font-bold sm:text-4xl text-black">
+                      ETHdos graph expanded
+                    </h2>
+
+                    <p className="mt-4 text-gray-600">
+                      ⛓️ The proof generation is complete. {cleanFriendAddress}{" "}
+                      has been assigned degree {parseInt(degree || "0") + 1}.
+                      Checkout their ETHdos number page:
+                    </p>
+
+                    <div>
+                      <button
+                        className="inline-flex items-center px-8 py-3 mt-4 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring"
+                        onClick={() => {
+                          window.open(
+                            "https://ethdos.xyz/share/" + sinkIpfsHash,
+                            "_blank",
+                            "noopener,noreferrer"
+                          );
+                        }}
+                      >
+                        <span className="text-sm font-medium">
+                          ↗ Checkout their ETHdos page and share it with them
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* <div className="flex h-full items-center justify-center text-white">
           <div className="w-1/2">
             <Stepper>ETHdos number</Stepper>
 
             <div className="my-5">
               {stage === Stage.LOADING && <Title>{stage}</Title>}
               {stage === Stage.INVALID && <Title>{stage}</Title>}
-              {stage === Stage.PASTEPROOF && (
-                <>
-                  <textarea
-                    rows={10}
-                    name="proof"
-                    id="proof"
-                    className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5"
-                    placeholder={stage}
-                    onChange={(e) => {
-                      try {
-                        const pasteProof = JSON.parse(e.target.value);
-                        updateOriginalProof(pasteProof);
-                        setValidOriginalProof(true);
-                      } catch (error) {
-                        console.log(error);
-                        setValidOriginalProof(false);
-                      }
-                    }}
-                  />
-                  <Button
-                    disabled={!validOriginalProof}
-                    onClick={() => setStage(Stage.ADDRESS)}
-                    className="disabled:opacity-50 mt-5"
-                  >
-                    Submit
-                  </Button>
-                </>
-              )}
-              {stage === Stage.ORIGIN && (
-                <>
-                  <textarea
-                    rows={1}
-                    name="originaddress"
-                    id="originaddress"
-                    className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5 mt-5"
-                    placeholder={stage}
-                    value={sinkAddress}
-                    onChange={(e) => setSinkAddress(e.target.value)}
-                  />
-
-                  <ConnectButton.Custom>
-                    {({
-                      account,
-                      chain,
-                      openAccountModal,
-                      openChainModal,
-                      openConnectModal,
-                      mounted,
-                    }) => {
-                      return (
-                        <div
-                          {...(!mounted && {
-                            "aria-hidden": true,
-                            style: {
-                              opacity: 0,
-                              pointerEvents: "none",
-                              userSelect: "none",
-                            },
-                          })}
-                        >
-                          {(() => {
-                            if (!mounted || !account || !chain) {
-                              return (
-                                <Button
-                                  onClick={openConnectModal}
-                                  type="button"
-                                  className="mt-5"
-                                >
-                                  Choose address to originate from
-                                </Button>
-                              );
-                            }
-
-                            if (chain.unsupported) {
-                              return (
-                                <button onClick={openChainModal} type="button">
-                                  Wrong network, try again
-                                </button>
-                              );
-                            }
-
-                            return (
-                              <div>
-                                {chain.id == 10 ? (
-                                  <>
-                                    <Button
-                                      onClick={openAccountModal}
-                                      type="button"
-                                      className="mt-5 mr-5"
-                                    >
-                                      Change origin address
-                                    </Button>
-                                    <Button
-                                      disabled={!validAddress}
-                                      onClick={() => {
-                                        setOriginalPubInputs([
-                                          "0",
-                                          "0",
-                                          hexStringTobigInt(
-                                            account.address
-                                          ).toString(),
-                                          hexStringTobigInt(
-                                            account.address
-                                          ).toString(),
-                                        ]);
-                                        signer.signMessage();
-                                      }}
-                                      className="disabled:opacity-50 mt-5"
-                                    >
-                                      {validAddress
-                                        ? `Sign address & generate proof!`
-                                        : "Enter a valid address..."}
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <Button
-                                    onClick={openAccountModal}
-                                    type="button"
-                                    className="mt-5"
-                                  >
-                                    Change chain to Optimism Mainnet
-                                  </Button>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      );
-                    }}
-                  </ConnectButton.Custom>
-                </>
-              )}
-              {stage === Stage.ADDRESS && (
-                <>
-                  <InfoRow name="Originator" content={originator} />
-                  <InfoRow name="Your distance" content={degree.toString()} />
-                  <textarea
-                    rows={1}
-                    name="address"
-                    id="address"
-                    className="block w-full resize-none rounded-md border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm	p-5 mt-5"
-                    placeholder={stage}
-                    value={sinkAddress}
-                    onChange={(e) => setSinkAddress(e.target.value)}
-                  />
-
-                  <ConnectButton.Custom>
-                    {({
-                      account,
-                      chain,
-                      openAccountModal,
-                      openChainModal,
-                      openConnectModal,
-                      mounted,
-                    }) => {
-                      return (
-                        <div
-                          {...(!mounted && {
-                            "aria-hidden": true,
-                            style: {
-                              opacity: 0,
-                              pointerEvents: "none",
-                              userSelect: "none",
-                            },
-                          })}
-                        >
-                          {(() => {
-                            if (!mounted || !account || !chain) {
-                              return (
-                                <Button
-                                  onClick={openConnectModal}
-                                  type="button"
-                                  className="mt-5"
-                                >
-                                  Connect {`${sourceAddress}`}
-                                </Button>
-                              );
-                            }
-
-                            if (chain.unsupported) {
-                              return (
-                                <button onClick={openChainModal} type="button">
-                                  Wrong network, try again
-                                </button>
-                              );
-                            }
-
-                            return (
-                              <div>
-                                {chain.id == 10 ? (
-                                  account.address.toLowerCase() ===
-                                  sourceAddress ? (
-                                    <Button
-                                      disabled={!validAddress}
-                                      onClick={() => signer.signMessage()}
-                                      className="disabled:opacity-50 mt-5"
-                                    >
-                                      {validAddress
-                                        ? "Sign address & generate proof!"
-                                        : "Enter a valid address..."}
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      onClick={openAccountModal}
-                                      type="button"
-                                      className="mt-5"
-                                    >
-                                      Change address to {sourceAddress}
-                                    </Button>
-                                  )
-                                ) : (
-                                  <Button
-                                    onClick={openAccountModal}
-                                    type="button"
-                                    className="mt-5"
-                                  >
-                                    Change chain to Ethereum
-                                  </Button>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      );
-                    }}
-                  </ConnectButton.Custom>
-                </>
-              )}
-
-              {stage === Stage.GENERATING && <LoadingText />}
-              {stage === Stage.ERROR && <Title>{stage}</Title>}
               {stage === Stage.FINISHED && (
                 <>
                   <Title>{stage}</Title>
-                  <InfoRow name="Originator" content={originator} />
                   <InfoRow
-                    name="Distance of your receipient"
-                    content={(degree + 1).toString()}
+                    name="Originator"
+                    content={"0x" + BigInt(pubInputs![2]).toString(16)}
                   />
                   <InfoRow
-                    name="Link"
+                    name="Your distance"
+                    content={parseInt(pubInputs![1]).toString()}
+                  />
+                  <InfoRow
+                    name="Share with others"
                     content={
-                      <a href={`http://ethdos.xyz/share/${sinkIpfsHash}`}>
-                        http://ethdos.xyz/share/{sinkIpfsHash}
+                      <a href={`http://ethdos.xyz/share/${ipfsHash}`}>
+                        ethdos.xyz/share/{ipfsHash}
                       </a>
                     }
                   />
                 </>
               )}
             </div>
+            <div className="py-2">
+              {stage === Stage.FINISHED && (
+                <>
+                  <ConnectButton />
+                  <br />
+                  <Button onClick={() => write()} className="mr-5">
+                    Mint NFT
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </>
   );
 };
 
-export default Send;
+export default Share;

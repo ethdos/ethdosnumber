@@ -1,21 +1,25 @@
 import { create } from "ipfs-http-client";
 
-const infuraProjectId = process.env.INFURA_PROJECT_ID;
-const infuraProjectSecret = process.env.INFURA_PROJECT_SECRET;
+const infuraProjectId = "27gFFJHH3Wao71b1vrxtGiaNVS9";
+const infuraProjectSecret = "715e7c280a49ce2792d95571758c8c85";
+const infuraBase = "https://exgrasia.infura-ipfs.io/ipfs/";
 
 const auth =
   "Basic " +
   Buffer.from(infuraProjectId + ":" + infuraProjectSecret).toString("base64");
 
-export async function postToIpfs(message: string) {
+function createIpfs() {
   const ipfs = create({
-    host: "ipfs.infura.io",
-    port: 5001,
-    protocol: "https",
+    url: "https://exgrasia.infura-ipfs.io:5001/api/v0",
     headers: {
       authorization: auth,
     },
   });
+  return ipfs;
+}
+
+export async function postToIpfs(message: string) {
+  const ipfs = createIpfs();
 
   // TODO: pin?
   const { cid } = await ipfs.add(message);
@@ -23,22 +27,7 @@ export async function postToIpfs(message: string) {
 }
 
 export async function readFromIpfs(cid: string) {
-  const ipfs = create({
-    host: "ipfs.infura.io",
-    port: 5001,
-    protocol: "https",
-    headers: {
-      authorization: auth,
-    },
-  });
-
-  const stream = ipfs.cat(cid);
-  const decoder = new TextDecoder();
-  let data = "";
-  for await (const chunk of stream) {
-    // chunks of data are returned as a Uint8Array, convert it back to a string
-    data += decoder.decode(chunk, { stream: true });
-  }
-
-  return data;
+  const ipfs = infuraBase + cid;
+  const response = await (await fetch(ipfs)).json();
+  return response;
 }
