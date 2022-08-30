@@ -20,6 +20,7 @@
     "next": "^12.1.6",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "react-modal": "^3.15.1",
     "react-parallax-tilt": "^1.7.60",
     "react-spinners": "^0.12.0",
     "snarkjs": "^0.4.22",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@types/node": "^17.0.35",
     "@types/react": "^18.0.9",
+    "@types/react-modal": "^3.13.1",
     "@types/styled-components": "^5.1.25",
     "autoprefixer": "^10.4.7",
     "eslint": "^8.15.0",

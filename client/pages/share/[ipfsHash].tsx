@@ -24,6 +24,8 @@ import Iconoir from "iconoir/icons/atom.svg";
 import Tilt from "react-parallax-tilt";
 import NFTSvg from "../nftTemplate";
 import Header from "../components/header";
+import ReactModal from 'react-modal';
+
 
 // const snarkjs = require("snarkjs");
 
@@ -33,6 +35,7 @@ enum Stage {
   FINISHED = "Proof information",
 }
 
+
 const Share: NextPage = () => {
   const router = useRouter();
   const { ipfsHash } = router.query;
@@ -40,6 +43,7 @@ const Share: NextPage = () => {
   const [stage, setStage] = useState<any>(Stage.LOADING);
   const [proof, setProof] = useState<any>(null);
   const [pubInputs, setPubInputs] = useState<any>(null);
+  const [inspectModalOpen, setInspectModalOpen] = useState<boolean>(false);
 
   const [verifyStatus, setVerifyStatus] = useState<string>("Verify proof");
   const rawAddress =
@@ -57,8 +61,8 @@ const Share: NextPage = () => {
   const cleanAddress = ensData
     ? ensData
     : rawAddress
-    ? rawAddress.slice(0, 4) + "..." + rawAddress.slice(-4)
-    : undefined;
+      ? rawAddress.slice(0, 4) + "..." + rawAddress.slice(-4)
+      : undefined;
 
   useEffect(() => {
     async function getHash() {
@@ -247,12 +251,30 @@ const Share: NextPage = () => {
                         Check ZK proof
                       </span>
                     </a>
-                    <a
+                    <button
                       className="text-sm font-medium ml-8 hover:text-gray-500/75 text-black"
-                      href="/get-started"
+                      onClick={() => setInspectModalOpen(true)
+                      }
                     >
                       ↗ Inspect ZK proof
-                    </a>
+                    </button>
+                    <ReactModal
+                      isOpen={inspectModalOpen}
+                      ariaHideApp={false}
+                    >
+                      <button
+                        className="text-sm font-medium border-black-600"
+                        onClick={() => setInspectModalOpen(false)}
+                      >
+                        Close
+                      </button>
+                      <div className="text-sm font-medium space-y-4">
+                        This data is enough to verify your claim without the verifier learning any other information about your claim.
+                        <pre>
+                          {JSON.stringify(proof, null, 2)}
+                        </pre>
+                      </div>
+                    </ReactModal>
                   </div>
 
                   <div tabIndex={0} className="collapse mt-5">
