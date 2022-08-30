@@ -25,6 +25,8 @@ import Tilt from "react-parallax-tilt";
 import NFTSvg from "../nftTemplate";
 import Header from "../components/header";
 import ReactModal from "react-modal";
+import Script from "next/script";
+import Image from "next/image";
 
 // const snarkjs = require("snarkjs");
 
@@ -200,10 +202,9 @@ const Share: NextPage = () => {
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Space+Mono"
           />
-          <script src="/snarkjs.min.js"></script>
         </Head>
+        <Script src="/snarkjs.min.js"></Script>
         <Header isConnected={isConnected} />
-
         <div className="container mt-3 m-auto align-center place-content-center justify-items-center place-self-center place-items-center">
           <section>
             <div className="max-w-screen-xl px-4 py-16 mx-auto sm:px-6 lg:px-8 justify-center align-center">
@@ -389,7 +390,7 @@ const Share: NextPage = () => {
                                                 }}
                                               >
                                                 {chain.iconUrl && (
-                                                  <img
+                                                  <Image
                                                     alt={
                                                       chain.name ?? "Chain icon"
                                                     }

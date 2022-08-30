@@ -31,6 +31,7 @@ import Iconoir from "iconoir/icons/atom.svg";
 import Tilt from "react-parallax-tilt";
 import NFTSvg from "../nftTemplate";
 import Header from "../components/header";
+import Image from "next/image";
 
 // const snarkjs = require("snarkjs");
 
@@ -401,7 +402,7 @@ const Share: NextPage = () => {
                                           }}
                                         >
                                           {chain.iconUrl && (
-                                            <img
+                                            <Image
                                               alt={chain.name ?? "Chain icon"}
                                               src={chain.iconUrl}
                                               style={{ width: 12, height: 12 }}
@@ -452,7 +453,7 @@ const Share: NextPage = () => {
                       <div className="mt-4 form-control w-full">
                         <label className="label">
                           <span className="label-text text-gray-600">
-                            Enter your friend's address or ENS name:
+                            Enter your friend&rsquo;s address or ENS name:
                           </span>
                         </label>
                         <input
