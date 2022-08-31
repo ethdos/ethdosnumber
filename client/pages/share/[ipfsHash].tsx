@@ -277,9 +277,8 @@ const Share: NextPage = () => {
                         Close
                       </button>
                       <div className="text-sm font-medium space-y-4">
-                        This data is enough to verify your claim without the
-                        verifier learning any other information about your
-                        claim:
+                        This data verifies the prover&rsquo;s claim without the
+                        verifier learning any other information about the claim!
                         <pre className="mt-4">
                           {JSON.stringify(proof, null, 2)}
                         </pre>
