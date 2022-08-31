@@ -52,7 +52,13 @@ const Header = (props: { isConnected: boolean }) => (
             <ul className="flex items-center gap-10 text-sm">
               {props.isConnected && (
                 <li>
-                  <ConnectButton />
+                  <ConnectButton
+                    chainStatus="none"
+                    showBalance={{
+                      smallScreen: false,
+                      largeScreen: true,
+                    }}
+                  />
                 </li>
               )}
               <li>
