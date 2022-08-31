@@ -62,18 +62,24 @@ const Header = (props: { isConnected: boolean }) => (
                 </li>
               )}
               <li>
-                <Link href="/">
+                <a
+                  href="https://github.com/ethdos/ethdosnumber"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <span className="text-black transition hover:text-gray-500/75 mt-5 hover:cursor-pointer">
                     CODE
                   </span>
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link href="/">
-                  <span className="text-black transition hover:text-gray-500/75 mt-5 hover:cursor-pointer">
-                    ABOUT
-                  </span>
+                <Link href="/blog" passHref>
+                  <a target="_blank">
+                    <span className="text-black transition hover:text-gray-500/75 mt-5 hover:cursor-pointer">
+                      BLOG
+                    </span>
+                  </a>
                 </Link>
               </li>
             </ul>
