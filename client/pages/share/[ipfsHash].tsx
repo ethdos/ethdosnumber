@@ -10,6 +10,7 @@ import InfoRow from "../../components/InfoRow";
 import Slideover from "../../components/Slideover";
 import {
   checkProof,
+  CONTRACT_ADDRESS,
   fetchSolidityData,
   ORIGIN_ADDRESS,
   ORIGIN_NAME,
@@ -155,7 +156,11 @@ const Share: NextPage = () => {
   const solidityData =
     proof && pubInputs ? fetchSolidityData(proof, pubInputs) : [];
 
-  const { connector: activeConnector, isConnected } = useAccount();
+  const {
+    connector: activeConnector,
+    isConnected,
+    address: walletConnectedAddress,
+  } = useAccount();
   const {
     connect,
     connectors,
@@ -167,7 +172,7 @@ const Share: NextPage = () => {
   //snarkjs.groth16ExportSolidityCallData(proof, pubInputs);
 
   const { config } = usePrepareContractWrite({
-    addressOrName: "0x2A0F14D7E66F1b7eFe53777C3655df66790eD795",
+    addressOrName: CONTRACT_ADDRESS,
     contractInterface: mintAbi,
     functionName: "mint",
     args: solidityData,
@@ -447,6 +452,13 @@ const Share: NextPage = () => {
                             </div>
                           </button>
                         )}
+
+                        {isConnected &&
+                          walletConnectedAddress !== rawAddress && (
+                            <span className="text-sm font-medium text-center text-red-600">
+                              Connected account does not match proof address
+                            </span>
+                          )}
                       </div>
                     </div>
                   </div>

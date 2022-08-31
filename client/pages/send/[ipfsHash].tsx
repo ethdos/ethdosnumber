@@ -224,7 +224,11 @@ const Share: NextPage = () => {
     }, 10000);
   };
 
-  const { connector: activeConnector, isConnected } = useAccount();
+  const {
+    connector: activeConnector,
+    isConnected,
+    address: walletConnectedAddress,
+  } = useAccount();
   console.log("activeConnector", activeConnector);
   const {
     connect,
@@ -555,6 +559,11 @@ const Share: NextPage = () => {
                   </div>
                 )}
               </div>
+              {isConnected && walletConnectedAddress !== rawAddress && (
+                <span className="text-sm font-medium text-center text-red-600">
+                  Connected account does not match proof address
+                </span>
+              )}
             </div>
           </section>
         </div>

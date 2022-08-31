@@ -147,6 +147,20 @@ export const checkProof = async function (proof, publicSignals) {
   const vKey = await getVerificationKey();
   console.log("vKey", vKey);
 
+  if (
+    publicSignals[0] !==
+    "11642711455315657037619325453283726029571464969592491499732195523426936339829"
+  ) {
+    return false;
+  }
+  if (
+    ethers.utils.getAddress(
+      ethers.utils.bigNumberify(publicSignals[2]).toHexString()
+    ) !== ORIGIN_ADDRESS
+  ) {
+    return false;
+  }
+
   const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
   return res;
 };
@@ -171,3 +185,4 @@ export const fetchSolidityData = (proof, pub) => {
 
 export const ORIGIN_ADDRESS = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 export const ORIGIN_NAME = "Vitalik";
+export const CONTRACT_ADDRESS = "0x2A0F14D7E66F1b7eFe53777C3655df66790eD795";
