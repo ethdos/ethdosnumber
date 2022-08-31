@@ -36,6 +36,12 @@ export const Title = styled.h2`
   margin: 20px 0px;
 `;
 
+export const Subtitle = styled.h2`
+  font-size: 22px;
+  font-weight: 400;
+  margin: 20px 0px;
+`;
+
 export const Button = styled.button`
   font-size: 16px;
   padding: 10px 15px;

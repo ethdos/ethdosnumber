@@ -1,9 +1,9 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { StepperHover, Button, Title } from "../components/Base";
+import { StepperHover, Button, Title, Subtitle } from "../components/Base";
 
-const Home: NextPage = () => {
+const Blog: NextPage = () => {
   return (
     <>
       <div className="scroll-smooth">
@@ -16,28 +16,14 @@ const Home: NextPage = () => {
 
         <div className="flex h-full justify-center bg-heyanonred text-white">
           <div className="items-center justify-center self-center prose max-w-prose">
-            <Title>FAQ</Title>
-
-     
+            <Title>ETHDos Deep Dive</Title>
+            <Subtitle>By Adhyyan, Nalin, Vivek and Sampriti</Subtitle>
 
             <div className="grid">
               <div className="mb-8">
                 <strong>What?</strong>
                 <div>
                   Presenting ETHdos numbers: measuring degrees of separation of people (akin to Bacon/Erdos numbers) while hiding individual friendships entirely. This is the first of its kind social experiment using the composability of recursive zk snarks.
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <strong>Demo</strong>
-                <div>
-                  <Link href="/send/paste">
-                    <StepperHover>ETHdos number</StepperHover>
-                  </Link>
-                  <br/>
-                  <Link href="/share/QmZwz1zBDWSpU5vEJhanb2LixjxVaL4snXDVnFrX55ntgR">
-                    <Button>Example Proof</Button>
-                  </Link>
                 </div>
               </div>
 
@@ -64,11 +50,6 @@ const Home: NextPage = () => {
                 have the lowest degree of separation by talking to their friends!
                 <br/><br/>
                 For more, check out our github:
-                <div className="items-end">
-                  <Link href="/blog">
-                    <StepperHover>Deep Dive</StepperHover>
-                  </Link>
-                </div>
                 <a href="https://github.com/nalinbhardwaj/ethdosnumber">{" "}github.com/nalinbhardwaj/ethdosnumber</a>
                 </div>
               </div>
@@ -79,4 +60,4 @@ const Home: NextPage = () => {
     </>
   );
 };
-export default Home;
+export default Blog;
