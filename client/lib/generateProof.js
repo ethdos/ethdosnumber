@@ -155,7 +155,7 @@ export const checkProof = async function (proof, publicSignals) {
   }
   if (
     ethers.utils.getAddress(
-      ethers.utils.bigNumberify(publicSignals[2]).toHexString()
+      ethers.BigNumber.from(publicSignals[2]).toHexString()
     ) !== ORIGIN_ADDRESS
   ) {
     return false;
