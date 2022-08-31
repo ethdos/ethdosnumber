@@ -16,13 +16,16 @@ contract ETHdosTest is Test {
     uint256[2] _c = [1, 1];
 
     function testTokenURI() public {
-        ETHdos ethdos = new ETHdos();
+        address originAddr = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045;
+        string memory originName = "Vitalik";
+        address creatorAddr = 0xF05b5f04B7a77Ca549C0dE06beaF257f40C66FDB;
+        ETHdos ethdos = new ETHdos(originAddr, originName, creatorAddr);
         vm.startPrank(address(0xF05b5f04B7a77Ca549C0dE06beaF257f40C66FDB), address(0xF05b5f04B7a77Ca549C0dE06beaF257f40C66FDB));
         ethdos.mint(
             _a,
             _b,
             _c,
-            [7138597452374049843442357986628673314690363139209617000292486089713270058062, 4, uint256(uint160(0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045)), uint256(uint160(0xF05b5f04B7a77Ca549C0dE06beaF257f40C66FDB))]
+            [11642711455315657037619325453283726029571464969592491499732195523426936339829, 4, uint256(uint160(0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045)), uint256(uint160(0xF05b5f04B7a77Ca549C0dE06beaF257f40C66FDB))]
         );
         vm.stopPrank();
         string memory output = ethdos.tokenURI(1);

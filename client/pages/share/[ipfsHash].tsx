@@ -8,7 +8,12 @@ import { useEffect, useState } from "react";
 import { Stepper, Title, Button } from "../../components/Base";
 import InfoRow from "../../components/InfoRow";
 import Slideover from "../../components/Slideover";
-import { checkProof, fetchSolidityData } from "../../lib/generateProof";
+import {
+  checkProof,
+  fetchSolidityData,
+  ORIGIN_ADDRESS,
+  ORIGIN_NAME,
+} from "../../lib/generateProof";
 import {
   useProvider,
   useContractWrite,
@@ -220,9 +225,7 @@ const Share: NextPage = () => {
                     gyroscope={true}
                   >
                     <NFTSvg
-                      originAddress={
-                        "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
-                      }
+                      originAddress={ORIGIN_ADDRESS}
                       sinkAddress={rawAddress || ""}
                       degree={degree || ""}
                     />
@@ -237,13 +240,13 @@ const Share: NextPage = () => {
                   <p className="mt-4 text-gray-600">
                     👀 {cleanAddress} has a zero-knowledge proof showing that
                     they are {getFriendShipDist(degree || "0") + " "}
-                    (degree {degree}) of Vitalik.
+                    (degree {degree}) of {ORIGIN_NAME}.
                   </p>
 
                   <p className="mt-4 text-gray-600">
                     🤫 However, the ZK proof does not reveal the intermediate
-                    path between Vitalik and {cleanAddress}, not even to{" "}
-                    {cleanAddress} or Vitalik themselves!
+                    path between {ORIGIN_NAME} and {cleanAddress}, not even to{" "}
+                    {cleanAddress} or {ORIGIN_NAME} themselves!
                   </p>
 
                   <div>

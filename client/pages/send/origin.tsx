@@ -37,8 +37,6 @@ import Image from "next/image";
 // const snarkjs = require("snarkjs");
 
 enum Stage {
-  LOADING,
-  INVALID,
   FINISHED,
   CONNECTED_WALLET,
   ENTERED_ADDRESS,
@@ -50,11 +48,8 @@ enum Stage {
 
 const Share: NextPage = () => {
   const backendUrl = "https://backend.ethdos.xyz/";
-  const router = useRouter();
-  const { ipfsHash } = router.query;
 
-  const [stage, setStage] = useState<any>(Stage.LOADING);
-  const [originalProof, setOriginalProof] = useState<any>(null);
+  const [stage, setStage] = useState<any>(Stage.FINISHED);
   const [originalPubInputs, setOriginalPubInputs] = useState<any>(null);
 
   const [verifyStatus, setVerifyStatus] = useState<string>("Verify proof");
@@ -93,26 +88,6 @@ const Share: NextPage = () => {
       "..." +
       parsedFriendInputNormalised.slice(-4)
     : undefined;
-
-  useEffect(() => {
-    async function getHash() {
-      const resp = await fetch(`/api/getproof/${ipfsHash}`);
-      const respData = await resp.json();
-
-      if (!resp.ok) {
-        setStage(Stage.INVALID);
-        return;
-      }
-
-      setOriginalProof(respData.proof);
-      setOriginalPubInputs(respData.pubInputs);
-      setStage(Stage.FINISHED);
-    }
-
-    if (ipfsHash) {
-      getHash();
-    }
-  }, [ipfsHash]);
 
   // const verifyProofInBrowser = async () => {
   //   setVerifyStatus("Verifying...");
@@ -163,8 +138,8 @@ const Share: NextPage = () => {
     const signatureMessage =
       "ETHdos friend: " + (parsedFriendInput + "").toLowerCase();
     const inputs = generateProofInputs(
-      originalProof,
-      originalPubInputs,
+      undefined,
+      undefined,
       parsedFriendInput,
       signer.data,
       signatureMessage
@@ -243,7 +218,6 @@ const Share: NextPage = () => {
     }
   }, [isConnected, stage]);
 
-  console.log("proof", originalProof);
   console.log("pubInputs", originalPubInputs);
   console.log("isConnected", isConnected);
   console.log("lol");
@@ -293,8 +267,8 @@ const Share: NextPage = () => {
                   >
                     <NFTSvg
                       originAddress={ORIGIN_ADDRESS}
-                      sinkAddress={rawAddress || ""}
-                      degree={degree || ""}
+                      sinkAddress={rawAddress || ORIGIN_ADDRESS}
+                      degree={degree || "0"}
                     />
                   </Tilt>
                 </div>
@@ -302,16 +276,16 @@ const Share: NextPage = () => {
                 {stage == Stage.FINISHED && (
                   <div className="lg:pt-4">
                     <h2 className="text-3xl font-bold sm:text-4xl text-black">
-                      Expand the ETHdos graph
+                      Start the ETHdos graph
                     </h2>
 
                     <p className="mt-4 text-gray-600">
-                      🧙‍♂️ A chain of {degree} people have stewarded you into the
-                      ETHdos graph. Use your power to expand the graph wisely.
+                      🧙‍♂️ You have been granted infinite power to steward the
+                      ETHdos graph. Use your power to build the graph wisely.
                     </p>
 
                     <p className="mt-4 text-gray-600">
-                      👯 Invite a friend to be the next link in the chain,
+                      👯 Invite a friend to be the first link in the chain,
                       assigning them degree {parseInt(degree || "0") + 1}.
                     </p>
 
@@ -433,16 +407,16 @@ const Share: NextPage = () => {
                 {stage == Stage.CONNECTED_WALLET && (
                   <div className="lg:pt-4">
                     <h2 className="text-3xl font-bold sm:text-4xl text-black">
-                      Expand the ETHdos graph
+                      Start the ETHdos graph
                     </h2>
 
                     <p className="mt-4 text-gray-600">
-                      🧙‍♂️ A chain of {degree} people have stewarded you into the
-                      ETHdos graph. Use your power to expand the graph wisely.
+                      🧙‍♂️ You have been granted infinite power to steward the
+                      ETHdos graph. Use your power to build the graph wisely.
                     </p>
 
                     <p className="mt-4 text-gray-600">
-                      👯 Invite a friend to be the next link in the chain,
+                      👯 Invite a friend to be the first link in the chain,
                       assigning them degree {parseInt(degree || "0") + 1}.
                     </p>
 
@@ -491,11 +465,11 @@ const Share: NextPage = () => {
                   stage == Stage.GENERATING_PROOF) && (
                   <div className="lg:pt-4">
                     <h2 className="text-3xl font-bold sm:text-4xl text-black">
-                      Expand the ETHdos graph
+                      Start the ETHdos graph
                     </h2>
 
                     <p className="mt-4 text-gray-600">
-                      🧙‍♂️ A chain of {degree} people stewarded you into the
+                      🧙‍♂️ You have been granted infinite power to steward the
                       ETHdos graph. You have now chosen to extend this chain by
                       inviting {cleanFriendAddress}, assigning them degree{" "}
                       {parseInt(degree || "0") + 1}.
@@ -517,7 +491,7 @@ const Share: NextPage = () => {
                       >
                         <span className="text-sm font-medium">
                           {stage == Stage.GENERATING_PROOF
-                            ? "Generating ZK proof... Checkout our blog in the meantime!"
+                            ? "Generating ZK proof..."
                             : "Generate ZK proof"}
                         </span>
                       </button>

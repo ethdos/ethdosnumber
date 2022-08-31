@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { ClipLoader } from "react-spinners";
+import { ORIGIN_NAME } from "../lib/generateProof";
 
 const textArray = [
   "Running magic moon math 🌚🌚🌚",
-  "Vitalik probably thinks you're cool for generating a ZK proof",
+  ORIGIN_NAME + " probably thinks you're cool for generating a ZK proof",
   "Welcome to the future of b l o c k c h a i n",
   "Pop quiz: what's the difference between the ate, tate pairing?",
   "Bonus question: are ate, kate, and tate related?",

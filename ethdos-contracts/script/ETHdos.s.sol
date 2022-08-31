@@ -17,7 +17,10 @@ contract ETHdosScript is Script {
 
     function deploy() public {
         vm.startBroadcast();
-        ETHdos ethdos = new ETHdos();
+        address originAddr = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045;
+        string memory originName = "Vitalik";
+        address creatorAddr = 0xF05b5f04B7a77Ca549C0dE06beaF257f40C66FDB;
+        ETHdos ethdos = new ETHdos(originAddr, originName, creatorAddr);
         console.log(address(ethdos));
         vm.stopBroadcast();
     }

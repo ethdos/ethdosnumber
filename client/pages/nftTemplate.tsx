@@ -1,3 +1,4 @@
+import { ORIGIN_NAME } from "../lib/generateProof";
 import React from "react";
 
 const NFTSvg = (props: {
@@ -187,7 +188,7 @@ const NFTSvg = (props: {
         fontWeight="200"
         fontSize="36px"
       >
-        Vitalik
+        {ORIGIN_NAME}
       </text>
     </g>
     <rect

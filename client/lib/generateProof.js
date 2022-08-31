@@ -168,3 +168,6 @@ export const fetchSolidityData = (proof, pub) => {
   ];
   return x;
 };
+
+export const ORIGIN_ADDRESS = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+export const ORIGIN_NAME = "Vitalik";

@@ -12,6 +12,7 @@ library NFTSVG {
 
     struct SVGParams {
       address originAddress;
+      string originName;
       address sinkAddress;
       uint256 degree;
       uint256 tokenId;
@@ -37,7 +38,7 @@ library NFTSVG {
                         params.sinkAddress.toHexString(),
                         params.degree
                     ),
-                    generateSVGCardMantle(params.degree),
+                    generateSVGCardMantle(params.degree, params.originName),
                     generateSVGLogo(),
                     '</svg>'
                 )
@@ -170,7 +171,7 @@ library NFTSVG {
     }
 
     function generateSVGCardMantle(
-        uint256 degree
+        uint256 degree, string memory originName
     ) private pure returns (string memory svg) {
         svg = string(
             abi.encodePacked(
@@ -182,7 +183,7 @@ library NFTSVG {
                 '</text><text y="160px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
                 'from',
                 '</text><text y="205px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
-                'Vitalik',
+                originName,
                 '</text></g>',
                 '<rect x="16" y="16" width="258" height="468" rx="26" ry="26" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.2)" />'
             )

@@ -9,7 +9,6 @@ import "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 import "./Verifier.sol";
 import "./NFTSVG.sol";
 import "./HexStrings.sol";
-import "forge-std/console2.sol";
 
 contract ETHdos is ERC721Enumerable {
     using Counters for Counters.Counter;
@@ -22,6 +21,7 @@ contract ETHdos is ERC721Enumerable {
 
     struct TokenMetadata {
         address originAddress;
+        string originName;
         address sinkAddress;
         uint256 degree;
     }
@@ -60,6 +60,7 @@ contract ETHdos is ERC721Enumerable {
         TokenMetadata memory meta = tokenIdtoMetadata[tokenId];
         NFTSVG.SVGParams memory svgParams = NFTSVG.SVGParams({
             originAddress: meta.originAddress,
+            originName: meta.originName,
             sinkAddress: meta.sinkAddress,
             degree: meta.degree,
             tokenId: tokenId,
@@ -107,14 +108,15 @@ contract ETHdos is ERC721Enumerable {
         tokenCounter.increment();
         uint256 tokenId = tokenCounter.current();
 
-        require(signals[0] == 7138597452374049843442357986628673314690363139209617000292486089713270058062, "invalid signals");
+        require(signals[0] == 11642711455315657037619325453283726029571464969592491499732195523426936339829, "invalid signals");
         tokenIdtoMetadata[tokenId].degree = signals[1];
         tokenIdtoMetadata[tokenId].originAddress = address(uint160(signals[2]));
+        tokenIdtoMetadata[tokenId].originName = ORIGIN_NAME;
         tokenIdtoMetadata[tokenId].sinkAddress = address(uint160(signals[3]));
         TokenMetadata memory meta = tokenIdtoMetadata[tokenId];
 
         require(meta.sinkAddress == msg.sender, "Invalid Sender");
-        // require(meta.originAddress == 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, "Invalid Origin, not vitalik.eth");
+        // require(meta.originAddress == ORIGIN_ADDRESS, "Invalid Origin");
         // require(Verifier.verifyProof(a, b, c, signals), "Invalid Proof");
         require(attrToTokenID[meta.originAddress][meta.sinkAddress][meta.degree] == 0, "NFT already exists");
         attrToTokenID[meta.originAddress][meta.sinkAddress][meta.degree] = tokenId;
@@ -132,5 +134,24 @@ contract ETHdos is ERC721Enumerable {
         }
     }
 
-    constructor() ERC721("ETHdos", "ETHDOS") {}
+    address public ORIGIN_ADDRESS;
+    string public ORIGIN_NAME;
+    address public CREATOR_ADDRESS;
+
+    constructor(address _originAddress, string memory _originName, address _creatorAddress) ERC721("ETHdos", "ETHDOS") {
+        ORIGIN_ADDRESS = _originAddress;
+        ORIGIN_NAME = _originName;
+        CREATOR_ADDRESS = _creatorAddress;
+    }
+
+    function setOriginAddress(address _originAddress, string memory _originName) public {
+        require(msg.sender == CREATOR_ADDRESS, "Only creator can set origin address");
+        ORIGIN_ADDRESS = _originAddress;
+        ORIGIN_NAME = _originName;
+    }
+
+    function setCreatorAddress(address _creatorAddress) public {
+        require(msg.sender == CREATOR_ADDRESS, "Only creator can set creator address");
+        CREATOR_ADDRESS = _creatorAddress;
+    }
 }
