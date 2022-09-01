@@ -47,7 +47,7 @@ enum Stage {
 }
 
 const Share: NextPage = () => {
-  const backendUrl = "http://localhost:3000/";
+  const backendUrl = "https://backend.ethdos.xyz/";
 
   const [stage, setStage] = useState<any>(Stage.FINISHED);
   const [originalPubInputs, setOriginalPubInputs] = useState<any>(null);
