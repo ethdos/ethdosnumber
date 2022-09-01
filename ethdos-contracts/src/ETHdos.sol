@@ -108,7 +108,7 @@ contract ETHdos is ERC721Enumerable {
         tokenCounter.increment();
         uint256 tokenId = tokenCounter.current();
 
-        require(signals[0] == 11642711455315657037619325453283726029571464969592491499732195523426936339829, "invalid signals");
+        require(signals[0] == 4252433715821012769718070692042314069815324618341008546615054712305544311485, "invalid signals");
         tokenIdtoMetadata[tokenId].degree = signals[1];
         tokenIdtoMetadata[tokenId].originAddress = address(uint160(signals[2]));
         tokenIdtoMetadata[tokenId].originName = ORIGIN_NAME;
