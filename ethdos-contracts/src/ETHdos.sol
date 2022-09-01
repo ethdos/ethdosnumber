@@ -116,8 +116,8 @@ contract ETHdos is ERC721Enumerable {
         TokenMetadata memory meta = tokenIdtoMetadata[tokenId];
 
         require(meta.sinkAddress == msg.sender, "Invalid Sender");
-        // require(meta.originAddress == ORIGIN_ADDRESS, "Invalid Origin");
-        // require(Verifier.verifyProof(a, b, c, signals), "Invalid Proof");
+        require(meta.originAddress == ORIGIN_ADDRESS, "Invalid Origin");
+        require(Verifier.verifyProof(a, b, c, signals), "Invalid Proof");
         require(attrToTokenID[meta.originAddress][meta.sinkAddress][meta.degree] == 0, "NFT already exists");
         attrToTokenID[meta.originAddress][meta.sinkAddress][meta.degree] = tokenId;
 

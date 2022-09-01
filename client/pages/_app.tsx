@@ -12,6 +12,7 @@ const { chains, provider, webSocketProvider } = configureChains(
     chain.mainnet,
     chain.polygon,
     chain.arbitrum,
+    chain.goerli,
     ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
       ? [chain.goerli, chain.kovan, chain.rinkeby, chain.ropsten]
       : []),
@@ -24,7 +25,7 @@ const { chains, provider, webSocketProvider } = configureChains(
 
 const { connectors } = getDefaultWallets({
   appName: "ETHdos",
-  chains: [chain.optimism, chain.mainnet],
+  chains: [chain.goerli],
 });
 
 const wagmiClient = createClient({
