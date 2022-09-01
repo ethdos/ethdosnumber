@@ -14,7 +14,7 @@ contract ETHdosScript is Script {
     uint256[2] _a = [1, 1];
     uint256[2][2] _b = [[1, 1], [1, 1]];
     uint256[2] _c = [1, 1];
-    address originAddr = 0x22d913d8A3920EC9349d174b815Ff39Aee78Ba42;
+    address originAddr = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045;
     string originName = "Vitalik";
 
     function deploy() public {

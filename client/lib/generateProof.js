@@ -183,9 +183,9 @@ export const fetchSolidityData = (proof, pub) => {
   return x;
 };
 
-export const ORIGIN_ADDRESS = "0x22d913d8A3920EC9349d174b815Ff39Aee78Ba42";
+export const ORIGIN_ADDRESS = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
 export const ORIGIN_NAME = "Vitalik";
-export const CONTRACT_ADDRESS = "0xaf16eb447a1cbFe4934690D1981B698d6EEe0104";
+export const CONTRACT_ADDRESS = "0x612048D83f0f744d5C14c45FEdEFEAF61C45E39D";
 export const RANDOM_ADDRESSES = [
   "0xF05b5f04B7a77Ca549C0dE06beaF257f40C66FDB",
   "0xBb483e8976CD690aC5f1E82bCC1f3a32012CcC97",

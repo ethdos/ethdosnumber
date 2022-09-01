@@ -509,7 +509,7 @@ const Share: NextPage = () => {
                     <p className="mt-4 text-gray-600">
                       🎰 Kick off the proof generation on the remote SNARK
                       proving server when you are ready. Generation will take a
-                      while (upto 20 minutes). Leave the tab open in the
+                      while (upto 10 minutes). Leave the tab open in the
                       background in the meantime.
                     </p>
 
