@@ -183,7 +183,7 @@ export const fetchSolidityData = (proof, pub) => {
   return x;
 };
 
-export const ORIGIN_ADDRESS = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
+export const ORIGIN_ADDRESS = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 export const ORIGIN_NAME = "Vitalik";
 export const CONTRACT_ADDRESS = "0x612048D83f0f744d5C14c45FEdEFEAF61C45E39D";
 export const RANDOM_ADDRESSES = [
