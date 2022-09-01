@@ -47,7 +47,7 @@ enum Stage {
 }
 
 const Share: NextPage = () => {
-  const backendUrl = "https://backend.ethdos.xyz/";
+  const backendUrl = "http://localhost:3000/";
 
   const [stage, setStage] = useState<any>(Stage.FINISHED);
   const [originalPubInputs, setOriginalPubInputs] = useState<any>(null);
@@ -149,6 +149,8 @@ const Share: NextPage = () => {
 
     // send api post request to generate proof
     const returnData = await postData(backendUrl + "generate_proof", inputs);
+    console.log("setting Stage to generating");
+    setStage(Stage.GENERATING_PROOF);
     if (!returnData.ok) {
       setStage(Stage.ERROR);
       return;
@@ -217,7 +219,7 @@ const Share: NextPage = () => {
 
   useEffect(() => {
     console.log("isConnected", isConnected);
-    if (isConnected) {
+    if (isConnected && stage < Stage.CONNECTED_WALLET) {
       setStage(Stage.CONNECTED_WALLET);
     }
   }, [isConnected, stage]);
@@ -237,7 +239,7 @@ const Share: NextPage = () => {
   useEffect(() => {
     if (signer.data) {
       console.log("setting stage to SIGNED_MESSAGE");
-      setStage(Stage.SIGNED_MESSAGE);
+      if (stage < Stage.SIGNED_MESSAGE) setStage(Stage.SIGNED_MESSAGE);
     }
   }, [signer]);
 

@@ -10,7 +10,7 @@ const auth =
 
 function createIpfs() {
   const ipfs = create({
-    url: "https://exgrasia.infura-ipfs.io:5001/api/v0",
+    url: "https://ipfs.infura.io:5001",
     headers: {
       authorization: auth,
     },

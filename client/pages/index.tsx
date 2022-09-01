@@ -73,22 +73,22 @@ const Home: NextPage = () => {
                   </h2>
 
                   <p className="mt-4 text-gray-600">
-                    😎 ETHdos is a first-of-its-kind application leveraging
-                    unique composability properties of recursive SNARKs to
-                    instrument a social experiment.
+                    😎 ETHdos is a first-of-its-kind social experiment
+                    leveraging unique composability properties of recursive
+                    SNARKs.
                   </p>
 
                   <p className="mt-4 text-gray-600">
                     👀 Much like Erdos numbers &amp; Bacon numbers, ETHdos
                     numbers measure your degrees of seperation from{" "}
-                    {ORIGIN_NAME}. The higher your number, the farther you are
-                    from {ORIGIN_NAME}.
+                    {ORIGIN_NAME}. The lower your number, the closer you are to{" "}
+                    {ORIGIN_NAME}!
                   </p>
 
                   <p className="mt-4 text-gray-600">
-                    🤫 Zero-knowledge proofs are used to hide the intermediate
-                    path between you and {ORIGIN_NAME}, not only from others but
-                    also from you yourself!
+                    🤫 Zero-knowledge proofs hide the intermediate path between
+                    you and {ORIGIN_NAME}, not only from others but also from
+                    you yourself!
                   </p>
 
                   <div>

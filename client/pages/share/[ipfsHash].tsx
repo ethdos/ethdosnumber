@@ -239,7 +239,7 @@ const Share: NextPage = () => {
 
                 <div className="lg:pt-4">
                   <h2 className="text-3xl font-bold sm:text-4xl text-black">
-                    ETHdos Number {degree}
+                    {cleanAddress}&rsquo;s ETHdos Number: {degree}
                   </h2>
 
                   <p className="mt-4 text-gray-600">
@@ -304,7 +304,7 @@ const Share: NextPage = () => {
                         <a href={"/send/" + ipfsHash}>
                           <div className="min-h-76 inline-flex items-center px-6 py-4 text-white bg-indigo-600 border border-indigo-600 rounded hover:bg-transparent hover:text-indigo-600 active:text-indigo-500 focus:outline-none focus:ring">
                             <span className="text-sm font-medium text-center">
-                              Expand the graph
+                              Add a friend to the ETHdos graph
                             </span>
                           </div>
                         </a>
