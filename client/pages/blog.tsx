@@ -91,6 +91,10 @@ const Home: NextPage = () => {
                       Vivek
                     </a>
                   </h3>
+                  <h3 className="text-md font-bold sm:text-md text-black mt-4 italic mb-4">
+                    Note: This is currently a draft. Please check back later for
+                    more information!
+                  </h3>
 
                   <div className="grid text-black">
                     <div className="mb-8">
@@ -107,75 +111,49 @@ const Home: NextPage = () => {
                     <div className="mb-8">
                       <strong>How?</strong>
                       <div>
-                        ETHdos begins at a central person, lets say its
-                        “Vitalik”. Theyll start by sending proofs of friendship
-                        in the form of ZK SNARKs to their closest ones, and
-                        their friends will be able to continue the chain from
-                        there. Eventually, you’ll be able to prove that you are
-                        connected to Vitalik with N degrees of seperation BUT
-                        you will not be able to determinate the path of people
-                        to him, nor will anyone else in the world. This creates
-                        a fun social experiment which allows famous
-                        personalities to reveal very limited information about
-                        their social graphs, while others can prove their
-                        connections reputably and can even mint NFTs on-chain to
-                        brag about their proximity!
+                        Recursive ZK-SNARKs are fundamentally cool technology.
+                        This summer, we built out a version of SNARK recursion
+                        using the groth16 proving system (blog post on 0xPARC
+                        blog with more details coming soon!). The usual use
+                        cases of Recursive ZK-SNARKs, however, almost entirely
+                        ignore the fresh new ZK properties of being able to do
+                        recursion, and instead, mostly use SNARKs for their
+                        succinctness properties.
                       </div>
                       <div>
-                        This project uses
-                        <a href="https://z.cash/technology/zksnarks/">
-                          {" "}
-                          recursive zk-snarks{" "}
-                        </a>
-                        to make composable proofs between different people.
-                        Using these proofs, you are able to generate the
-                        equivalent of Erdos/Bacon numbers but for peoples social
-                        graph.
-                        <br />
-                        <br />
-                        ZK SNARKs allow you to generate succinct proofs of
-                        knowledge that do not leak anything about the inputs to
-                        these proofs while proving assertions about these
-                        inputs. Recursive ZK SNARKs allow you to take this a
-                        step further and abuse the succinctness properties of
-                        SNARKs to create infinite chains of proofs that can be
-                        composably used with other private data (even from other
-                        parties) to generate larger proofs.
-                        <br />
-                        <br />
-                        We realized that this is a really interesting primitive
-                        to base social experiments on. For instance, recursive
-                        ZK SNARKs could allow you to play the game of
-                        telephone/secret whispers in a decentralised
-                        environment. Building on this idea further, we came up
-                        with the idea of encoding the concept of degrees of
-                        seperation using a decentralised PKI such as Ethereum.
-                        While theoretically interesting, getting this idea to
-                        production involved a lot of practical work and hacky
-                        solutions. Going from beefy 256gb RAM servers to writing
-                        25 million constraint SNARK circuits, we ended up
-                        exploring our understanding of everything from math to
-                        devops. Ultimately, we are able to demonstrate an
-                        exciting new idea and hope this will lead to other more
-                        interesting ones.
-                        <br />
-                        <br />
-                        Users can also post these proofs on chain to mint NFTs
-                        claiming that they are degree-k close to Vitalik. Who
-                        wouldnt want an NFT saying that you are almost besties
-                        with Vitalik? :P
-                        <br />
-                        <br />
-                        This allows for a fun social experiment where users
-                        would try to have the lowest degree of separation by
-                        talking to their friends!
-                        <br />
-                        <br />
-                        For more, check out our github:
-                        <a href="https://github.com/nalinbhardwaj/ethdosnumber">
-                          {" "}
-                          github.com/nalinbhardwaj/ethdosnumber
-                        </a>
+                        There's something fundamentally cool that seems to have
+                        been overlooked about recursive SNARKs, and it's not
+                        succinctness (or even compression as I've been calling
+                        it, for the lack of a better word). ETHdos is our first
+                        attempt at using this cool new property to instrument a
+                        social experiment! So, first, let's talk about this
+                        property:
+                      </div>
+                      <div>
+                        <strong>Composability</strong>
+                      </div>
+                      <div>
+                        <strong>
+                          In one sentence: a prover can now prove assertions
+                          about facts they do not fully know themselves.
+                        </strong>
+                      </div>
+                      <div>
+                        What does this mean? In ETHdos, I can prove I am degree
+                        4 from Vitalik by showing that someone who is friends
+                        with me is degree 3. I can prove there exists a valid
+                        path of friends from Vitalik to me, while not knowing
+                        anything about the path myself.
+                      </div>
+                      <div>
+                        This is something new entirely. Not only are ZK proofs
+                        hiding information from external verifiers, but also
+                        from the person making the proof!
+                      </div>
+                      <div>
+                        We'll talk more about this property and share more
+                        detailed thoughts on it at a later time in a blog post
+                        on the 0xPARC blog!
                       </div>
                     </div>
                   </div>
