@@ -92,7 +92,7 @@ const Home: NextPage = () => {
                     </a>
                   </h3>
 
-                  <div className="grid">
+                  <div className="grid text-black">
                     <div className="mb-8">
                       <strong>What?</strong>
                       <div>
