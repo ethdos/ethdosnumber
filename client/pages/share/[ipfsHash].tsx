@@ -33,6 +33,7 @@ import Header from "../components/header";
 import ReactModal from "react-modal";
 import Script from "next/script";
 import Image from "next/image";
+import { TwitterShareButton } from "react-twitter-embed";
 
 // const snarkjs = require("snarkjs");
 
@@ -207,12 +208,9 @@ const Share: NextPage = () => {
       <div className="min-h-screen h-full bg-[url('/gradient.jpeg')] bg-no-repeat bg-auto">
         <Head>
           <title>
-            {cleanAddress}s ETHdos Number: {degree}
+            {cleanAddress}&rsquo;s ETHdos Number: {degree}
           </title>
-          <meta
-            name="title"
-            content={`${cleanAddress}s ETHdos Number: ${degree}`}
-          />
+          <meta name="title" content="Check out my ETHdos Number!" />
           <meta
             name="description"
             content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
@@ -220,27 +218,27 @@ const Share: NextPage = () => {
 
           <meta property="og:type" content="website" />
           <meta property="og:url" content="https://ethdos.xyz/" />
-          <meta
-            property="og:title"
-            content={`${cleanAddress}s ETHdos Number: ${degree}`}
-          />
+          <meta property="og:title" content="Check out my ETHdos Number!" />
           <meta
             property="og:description"
             content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
           />
-          <meta property="og:image" content="/cover.png" />
+          <meta property="og:image" content="https://ethdos.xyz/cover.png" />
 
           <meta property="twitter:card" content="summary_large_image" />
           <meta property="twitter:url" content="https://ethdos.xyz/" />
           <meta
             property="twitter:title"
-            content={`${cleanAddress}s ETHdos Number: ${degree}`}
+            content="Check out my ETHdos Number!"
           />
           <meta
             property="twitter:description"
             content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
           />
-          <meta property="twitter:image" content="/cover.png" />
+          <meta
+            property="twitter:image"
+            content="https://ethdos.xyz/cover.png"
+          />
           <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Space+Mono"
@@ -492,6 +490,16 @@ const Share: NextPage = () => {
                               Connected account does not match proof address
                             </span>
                           )}
+
+                        {ipfsHash && degree && (
+                          <TwitterShareButton
+                            url={`https://ethdos.xyz/share/${ipfsHash}`}
+                            options={{
+                              size: "large",
+                              text: `I am ${degree} degrees from Vitalik! Check out my ETHdos number ZK proof:`,
+                            }}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>

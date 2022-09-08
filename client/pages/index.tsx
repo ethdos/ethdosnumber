@@ -54,7 +54,7 @@ const Home: NextPage = () => {
             property="og:description"
             content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
           />
-          <meta property="og:image" content="/cover.png" />
+          <meta property="og:image" content="https://ethdos.xyz/cover.png" />
 
           <meta property="twitter:card" content="summary_large_image" />
           <meta property="twitter:url" content="https://ethdos.xyz/" />
@@ -66,7 +66,10 @@ const Home: NextPage = () => {
             property="twitter:description"
             content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
           />
-          <meta property="twitter:image" content="/cover.png" />
+          <meta
+            property="twitter:image"
+            content="https://ethdos.xyz/cover.png"
+          />
           <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Space+Mono"
@@ -114,9 +117,10 @@ const Home: NextPage = () => {
                   </p>
 
                   <p className="mt-4 text-gray-600">
-                    🤫 Zero-knowledge proofs hide the intermediate path between
-                    you and {ORIGIN_NAME}, not only from others but also from
-                    you yourself!
+                    🤫 To get an ETHdos number, ask your friends to add you!
+                    Zero-knowledge proofs will hide the intermediate path
+                    between you and {ORIGIN_NAME}, not only from others but also
+                    from you yourself!
                   </p>
 
                   <div>
