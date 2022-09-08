@@ -272,13 +272,40 @@ const Share: NextPage = () => {
     <>
       <div className="min-h-screen h-full bg-[url('/gradient.jpeg')] bg-no-repeat bg-auto">
         <Head>
-          <title>ETHdos</title>
-          <link rel="icon" href="/favicon.ico" />
+          <title>ETHdos - ETH Degrees of Separation</title>
+          <meta name="title" content="ETHdos - ETH Degrees of Separation" />
+          <meta
+            name="description"
+            content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
+          />
+
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content="https://ethdos.xyz/" />
+          <meta
+            property="og:title"
+            content="ETHdos - ETH Degrees of Separation"
+          />
+          <meta
+            property="og:description"
+            content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
+          />
+          <meta property="og:image" content="/cover.png" />
+
+          <meta property="twitter:card" content="summary_large_image" />
+          <meta property="twitter:url" content="https://ethdos.xyz/" />
+          <meta
+            property="twitter:title"
+            content="ETHdos - ETH Degrees of Separation"
+          />
+          <meta
+            property="twitter:description"
+            content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
+          />
+          <meta property="twitter:image" content="/cover.png" />
           <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Space+Mono"
           />
-          {/* <script src="snarkjs.min.js"></script> */}
         </Head>
         <Header isConnected={isConnected} />
 

@@ -37,8 +37,30 @@ const Home: NextPage = () => {
     <>
       <div className="min-h-screen h-full bg-[url('/gradient.jpeg')] bg-no-repeat bg-cover">
         <Head>
-          <title>ETHdos</title>
-          <link rel="icon" href="/favicon.ico" />
+          <title>ETHdos - Deep Dive</title>
+          <meta name="title" content="ETHdos - Deep Dive" />
+          <meta
+            name="description"
+            content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
+          />
+
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content="https://ethdos.xyz/" />
+          <meta property="og:title" content="ETHdos - Deep Dive" />
+          <meta
+            property="og:description"
+            content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
+          />
+          <meta property="og:image" content="/cover.png" />
+
+          <meta property="twitter:card" content="summary_large_image" />
+          <meta property="twitter:url" content="https://ethdos.xyz/" />
+          <meta property="twitter:title" content="ETHdos - Deep Dive" />
+          <meta
+            property="twitter:description"
+            content="ETHdos is a social experiment leveraging unique composability properties of recursive SNARKs to measure your degrees of separation from Vitalik without revealing social graphs!"
+          />
+          <meta property="twitter:image" content="/cover.png" />
           <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Space+Mono"
@@ -121,13 +143,13 @@ const Home: NextPage = () => {
                         succinctness properties.
                       </div>
                       <div>
-                        There's something fundamentally cool that seems to have
-                        been overlooked about recursive SNARKs, and it's not
-                        succinctness (or even compression as I've been calling
-                        it, for the lack of a better word). ETHdos is our first
-                        attempt at using this cool new property to instrument a
-                        social experiment! So, first, let's talk about this
-                        property:
+                        There&rsquo;s something fundamentally cool that seems to
+                        have been overlooked about recursive SNARKs, and
+                        it&rsquo;s not succinctness (or even compression as
+                        I&rsquo;ve been calling it, for the lack of a better
+                        word). ETHdos is our first attempt at using this cool
+                        new property to instrument a social experiment! So,
+                        first, let&rsquo;s talk about this property:
                       </div>
                       <div>
                         <strong>Composability</strong>
@@ -151,7 +173,7 @@ const Home: NextPage = () => {
                         from the person making the proof!
                       </div>
                       <div>
-                        We'll talk more about this property and share more
+                        We&rsquo;ll talk more about this property and share more
                         detailed thoughts on it at a later time in a blog post
                         on the 0xPARC blog!
                       </div>
