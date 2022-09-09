@@ -249,8 +249,8 @@ const Home: NextPage = () => {
                       </div>
                       <div>
                         As a disclaimer, note that ETHdos is only meant to be a
-                        fun social experiment and a proof of concept for what's
-                        possible.{" "}
+                        fun social experiment and a proof of concept for
+                        what&rsquo;s possible.{" "}
                         <strong>
                           None of our code is audited or recommended for
                           production use without serious considerations.
@@ -415,9 +415,9 @@ const Home: NextPage = () => {
                         <li>
                           Lastly, use the NVME of your machine for storing the
                           zkey, r1cs and other generation for significantly
-                          faster data loading (which matters a lot when we're
-                          loading 10GB zkeys!). Remember it deletes data on
-                          machine restarts though!
+                          faster data loading (which matters a lot when
+                          we&rsquo;re loading 10GB zkeys!). Remember it deletes
+                          data on machine restarts though!
                         </li>
                       </ul>
                     </div>
