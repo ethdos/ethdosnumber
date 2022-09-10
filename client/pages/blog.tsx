@@ -123,9 +123,10 @@ const Home: NextPage = () => {
                       <div>
                         Presenting ETHdos numbers: measuring degrees of
                         separation of people (akin to Bacon/Erdos numbers) while
-                        hiding individual friendships entirely. This is the
-                        first of its kind social experiment using the
-                        composability of recursive zk snarks.
+                        hiding individual friendships entirely. This is a first
+                        of its kind social experiment demonstrating the
+                        composability properties unlocked by recursive
+                        ZK-SNARKs.
                       </div>
                     </div>
 
@@ -142,21 +143,21 @@ const Home: NextPage = () => {
                         >
                           0xPARC blog
                         </a>{" "}
-                        with more details coming soon!). With this, we started
-                        exploring use cases for recursive SNARKs. Quickly, we
-                        realised most usual use cases of Recursive ZK-SNARKs
-                        almost entirely ignore the ZK properties of being able
-                        to do recursion, mostly using SNARKs for their
-                        succinctness properties.
+                        with more details coming soon!). With this development,
+                        we started exploring use cases for recursive SNARKs.
+                        Quickly, we realised most usual use cases of Recursive
+                        ZK-SNARKs almost entirely ignore the ZK properties of
+                        being able to do recursion, mostly using SNARKs for
+                        their succinctness properties.
                       </div>
                       <div>
-                        There&rsquo;s something fundamentally cool that seems to
-                        have been overlooked about recursive SNARKs, and
-                        it&rsquo;s not succinctness (or even compression as
-                        I&rsquo;ve been calling it). ETHdos is our first attempt
-                        at exploring this cool new property to instrument a
-                        social experiment! So, first, let&rsquo;s talk about
-                        this property:
+                        In fact, there&rsquo;s something fundamentally cool
+                        about recursive SNARKs that seems to have been
+                        overlooked, and it&rsquo;s not succinctness (or even
+                        compression as I&rsquo;ve been calling it). ETHdos is
+                        our first attempt at exploring this cool new property to
+                        instrument a social experiment! So, let&rsquo;s talk
+                        about this property:
                       </div>
                     </div>
                     <div className="mb-8">
@@ -165,16 +166,16 @@ const Home: NextPage = () => {
                       </div>
                       <div className="mb-4">
                         <strong>
-                          In one sentence: a prover can now prove assertions
-                          about facts they do not fully know themselves.
+                          A prover can now prove assertions about facts they do
+                          not fully know themselves.
                         </strong>
                       </div>
                       <div>
                         What does this mean? In ETHdos, I can prove I am degree
                         4 from Vitalik by showing that someone who is friends
-                        with me is degree 3. I can prove there exists a valid
-                        path of friends from Vitalik to me, while not knowing
-                        anything about the path myself.
+                        with me is degree 3. I can show there exists a valid
+                        path of 4 people between us, without knowing what the
+                        first 3 nodes in it look like!
                       </div>
                       <div>
                         This is something new entirely. Not only are ZK proofs
@@ -200,20 +201,27 @@ const Home: NextPage = () => {
                         selectively sharing properties of it is inherently
                         interesting experimental grounds, and our intention is
                         for ETHdos to serve as a fun proof of concept social
-                        experiment to popularize this new idea.
+                        experiment to bring attention to recursive SNARK
+                        applications.
                       </div>
-                      <div>Here&rsquo;s a demo video:</div>
-                      <div>TODO</div>
-                      <div>The user flow looks like:</div>
-                      <ul className="list-disc list-inside">
+                      <div>Here&rsquo;s a demo video of our user flow:</div>
+                      <div>
+                        <video controls autoPlay>
+                          <source
+                            src="/blog/ethdos-user-flow.mp4"
+                            type="video/mp4"
+                          />
+                        </video>
+                      </div>
+                      <ul className="list-disc list-inside mt-2">
                         <li>
                           A user starts by receiving an ETHdos page URL from a
                           friend.
                         </li>
                         <li>
-                          They can mint a soul bound NFT of their degrees of
-                          seperation, or just share their ETHdos page URL on
-                          socials.
+                          Using this proof, they can mint a soul bound NFT of
+                          their degrees of seperation, or just share their
+                          ETHdos page URL on socials.
                         </li>
                         <li>
                           They add friends by signing an authenticating message
