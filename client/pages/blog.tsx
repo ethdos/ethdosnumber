@@ -225,7 +225,7 @@ const Home: NextPage = () => {
                         </li>
                         <li>
                           They add friends by signing an authenticating message
-                          and share it directly with their friend.
+                          and share the ETHdos page directly with their friend.
                         </li>
                       </ul>
                       <div>
@@ -241,9 +241,9 @@ const Home: NextPage = () => {
                         </a>
                         . Vitalik started off the graph recently by adding a few
                         of his friends as degree 1, and since then the graph has
-                        spread around naturally! If dont have a number yet, but
-                        are looking to get one, maybe you should ask your
-                        friends?{" "}
+                        spread around naturally! If you don&rsquo;t have a
+                        number yet, but are looking to get one, maybe you should
+                        ask your friends?{" "}
                         <div className="mt-4 mb-4 align-center text-center items-center self-center m-auto">
                           <TwitterShareButton
                             url={`https://ethdos.xyz/`}
@@ -304,7 +304,7 @@ const Home: NextPage = () => {
                       <div>
                         To create a proof of degrees of separation of the sink
                         node, the source node initiates computation by signing a
-                        message and running proof generation in the ZK circuit.
+                        message and running proof generation for the ZK circuit.
                         The circuit checks the following:
                       </div>
                       <div>
@@ -314,7 +314,7 @@ const Home: NextPage = () => {
                           alt="Circuit checks"
                         />
                       </div>
-                      <div>Now, let&rsquo;s expand on each of these:</div>
+                      <div>Let&rsquo;s expand on each of these:</div>
                       <div className="mb-4 mt-4">
                         <strong>ECDSA signature verification</strong>
                       </div>
@@ -323,10 +323,9 @@ const Home: NextPage = () => {
                         friend of the source by requiring the source to sign the
                         message “ETHdos friend: &lt;sink&rsquo;s address&gt;”.
                         To ensure the correctness of the message being signed,
-                        using the input signal sink address, the circuit
-                        recreates the message that should have been signed by
-                        source pub key to authenticate them as a friend. This
-                        involves{" "}
+                        the input signal sink address is used to recreate the
+                        message that should have been signed by source&rsquo;s
+                        pub key to authenticate them as a friend. This involves{" "}
                         <a
                           href="https://github.com/nalinbhardwaj/circom-pairing/blob/ethdos/circuits/ethdos/utils.circom#L5"
                           target="_blank"
@@ -336,6 +335,16 @@ const Home: NextPage = () => {
                           some complicated string mangling
                         </a>{" "}
                         to exactly match the format wallets sign messages in.
+                        ECDSA signature verification is made possible by the{" "}
+                        <a
+                          href="https://github.com/0xPARC/circom-ecdsa"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-gray-500/75"
+                        >
+                          circom-ecdsa
+                        </a>{" "}
+                        library.
                       </div>
                       <div className="mb-4 mt-4">
                         <strong>Verify source&rsquo;s degree</strong>
@@ -344,7 +353,10 @@ const Home: NextPage = () => {
                         Next, we verify that the source address is indeed the
                         claimed degree away. This is where we use SNARK
                         recursion: We verify the ZK proof of the source&rsquo;s
-                        degree inside this next SNARK.
+                        degree inside this ZK circuit. Doing so requires us to
+                        input a verification key for the circuit itself, and
+                        using that alongside a proof as the input to a groth16
+                        verifier circuit (that we wrote this summer!).
                       </div>
                       <div>
                         Finally, once we are sure of source&rsquo;s degree, we
@@ -352,24 +364,28 @@ const Home: NextPage = () => {
                         1 as their own degree correctly.
                       </div>
                       <div>
-                        Note that the base case for the recursion needs some
-                        special handling: If you are Vitalik making a proof for
-                        someone else, there is no “inner proof”, we replace it
-                        with a dummy (wrong) proof. So, in reality, we add a
-                        special case allowing anyone to become degree 1 as long
-                        as the ECDSA signature from the source verifies, and the
-                        source matches the origin address.
+                        Notice that the base case for this recursion needs some
+                        special handling: If you are vitalik.eth (the origin)
+                        making a proof for someone else, there is no “inner
+                        proof” to verify, so we replace it with a dummy (wrong)
+                        proof and instead add a special case allowing anyone to
+                        become degree 1 as long as the ECDSA signature from the
+                        source verifies, and the source matches the origin
+                        address i.e. only the origin node, vitalik.eth, can add
+                        people as degree 1.
                       </div>
                       <div className="mb-4 mt-4">
                         <strong>Remote SNARK prover</strong>
                       </div>
                       <div>
-                        The largest groth16/snarkjs circuits we&rsquo;ve been
-                        able to fit on client-side provers are about 10x
-                        smaller, so unfortunately, generating proofs on-device
-                        for this behemoth 31 million constraint circuit is very
-                        infeasible :( So we set up our old trusty zk-node-server
-                        (notes about it{" "}
+                        Groups within 0xPARC have continually pushed the
+                        boundaries of client-side provable circuits. Yet, the
+                        largest groth16 snarkjs based circuits we&rsquo;ve been
+                        able to fit on client-side provers are about 10x smaller
+                        than this one, so unfortunately, generating proofs
+                        on-device for this behemoth 31 million constraint
+                        circuit is very infeasible :( So insted, we set up our
+                        old trusty zk-node-server (notes about it{" "}
                         <a
                           href="https://github.com/stealthdrop/stealthdrop#bringing-it-together"
                           target="_blank"
@@ -380,14 +396,17 @@ const Home: NextPage = () => {
                         </a>
                         ) with rapidsnark and Circom&rsquo;s C++ witness
                         generators. End-to-end proof generation takes about 5
-                        minutes, and is dominated by witness generation (which
-                        is mostly single threaded) so one avenue of interest for
-                        future groth16 recursion based projects might be to look
-                        into making Circom&rsquo;s C++ witness generator highly
-                        parallelised for future. After playing around with a
-                        number of different params, we also discovered a couple
-                        other practical optimisations if you&rsquo;re trying to
-                        speed up proof generation for large Circom circuits:
+                        minutes, and interestingly enough, is dominated by
+                        witness generation (and not the actual prover) because
+                        it is single threaded while the prover is
+                        multi-threaded. Therefore, one avenue of interest for
+                        future groth16 SNARK recursion based projects might be
+                        to look into making Circom&rsquo;s C++ witness generator
+                        highly parallelised for future. After playing around
+                        with a number of different params, we also discovered a
+                        couple other practical optimisations to make if
+                        you&rsquo;re trying to speed up proof generation for
+                        large Circom circuits:
                       </div>
                       <ul className="list-disc list-inside">
                         <li>
@@ -402,6 +421,10 @@ const Home: NextPage = () => {
                             <code>parallel</code>tag
                           </a>{" "}
                           to parallelise witness generation wherever possible.
+                          While it&rsquo;s certainly not a silver bullet and
+                          quite error prone as a developer, it can help speed up
+                          witness generation significantly depending on your use
+                          case.
                         </li>
                         <li>
                           If you&rsquo;re hosting your remote SNARK prover on
@@ -415,17 +438,21 @@ const Home: NextPage = () => {
                             z1d line of machines
                           </a>
                           . We A/B tested a few different options and found
-                          these to be the most suitable for our use case:
-                          powerful single-threaded performance for witness
-                          generation and a large number of cores for
-                          multithreaded proof generations.
+                          these to be the most suitable for our use case: they
+                          provide a combination of high single-threaded
+                          performance for witness generation and a large number
+                          of cores for multithreaded prover optimisation.
                         </li>
                         <li>
                           Lastly, use the NVME of your machine for storing the
-                          zkey, r1cs and other generation for significantly
-                          faster data loading (which matters a lot when
-                          we&rsquo;re loading 10GB zkeys!). Remember it deletes
-                          data on machine restarts though!
+                          proving key (zkey), r1cs and other circuit artifacts
+                          for significantly faster data loading in rapidsnark
+                          and the C++ witness generator. Doing so cuts down the
+                          file loading times significantly, and is especially
+                          powerful when trying to optimise the multithreaded
+                          prover (where otherwise each thread would have to load
+                          the multi-gigabyte artifacts first). Remember,
+                          however, the NVME deletes data on machine restarts!
                         </li>
                       </ul>
                     </div>
@@ -435,7 +462,7 @@ const Home: NextPage = () => {
                       </div>
                       <div>
                         Our on-chain contract is a relatively straightforward
-                        ERC721 contract modified to disable transfers and make
+                        ERC721 contract modified to disable transfers to make
                         the tokens{" "}
                         <a
                           href="https://vitalik.ca/general/2022/01/26/soulbound.html"
@@ -448,13 +475,13 @@ const Home: NextPage = () => {
                         .
                       </div>
                       <div>
-                        Of course, for maximal decentralisation, we&rsquo;ve
+                        Additionally, for maximal decentralisation, we&rsquo;ve
                         made our NFT art fully on-chain by encoding the token
-                        image in our contract! To do so, we forked Uniswap V3
+                        image in our contract! We forked the Uniswap V3
                         Positions NFT and adapted the cards to our use case. It
                         was really fun to be able to play with art in Solidity,
-                        a language definitely not intended to support such use
-                        cases.😉
+                        but its definitely not intended to support such use
+                        cases as a language.
                       </div>
                     </div>
                     <div className="mb-8">
@@ -463,34 +490,35 @@ const Home: NextPage = () => {
                       </div>
                       <div>
                         As a fun aside, our journey of putting together ETHdos
-                        has been really fun. Many of us high-school friends, we
-                        originally came together earlier this summer to build
-                        _something_ fun for ETH NYC. Having played around with
-                        recursive SNARKs recently, we were thinking about cool
-                        applications we could build with this new primitive. And
-                        sitting on the East River coast in New York at 11PM,
-                        this idea came around. From there, all it took were two
-                        all nighter sprints to build out this tech over the
-                        weekend, only to end it with one of the funniest stories
-                        of miscommunication, oversleeping, and rushing through
-                        town in Ubers and subways! Ultimately, though, we won
-                        ETH NYC and had a really fun time doing so. Perhaps
-                        we&rsquo;ll save our bollywood story to describe
-                        in-person some other time. :)
+                        has been really fun. A subset of us are high-school
+                        friends, and we originally came together earlier this
+                        summer to build <em>something</em> fun for ETH NYC.
+                        Having played around with recursive SNARKs recently, we
+                        were thinking about cool applications we could build
+                        with this new primitive. And sitting on the East River
+                        coast in New York at 11PM, this idea came around. From
+                        there, all it took were two all nighter sprints to build
+                        out a prototype over the weekend, only to end it with
+                        one of the funniest stories of miscommunication,
+                        oversleeping, and rushing through town in Ubers and
+                        subways! Ultimately, though, we won ETH NYC and had a
+                        really fun time doing so. Perhaps, we&rsquo;ll save our
+                        main-character bollywood epilogue for in-person
+                        conversations at some point. :)
                       </div>
                       <div>
                         Since the ETH NYC weekend, we&rsquo;ve cleaned up a lot
                         of our frontend and general jank, and it has been quite
                         funny to be able to go from using Vitalik as a meme
                         example in our hackathon demos to having him actually be
-                        the origin node for our release now.
+                        the origin node for our full release now!
                       </div>
                       <div>
                         ETHdos is only possible thanks to a ton of support from
                         a number of awesome folks: Yi Sun, Jonathan Wang,
                         Vincent (circom-pairing team), gubsheep, Vitalik
-                        Buterin, DC Posch, Lakshman Sankar, Ying Tong and
-                        everyone else in the{" "}
+                        Buterin, DC Posch, Lakshman Sankar, Ying Tong, Michael
+                        and everyone else in the{" "}
                         <a
                           href="https://0xparc.org"
                           target="_blank"
