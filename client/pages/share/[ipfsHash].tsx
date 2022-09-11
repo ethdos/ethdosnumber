@@ -55,7 +55,9 @@ const Share: NextPage = () => {
   const [verifyStatus, setVerifyStatus] = useState<string>("Check ZK proof");
   const rawAddress =
     pubInputs && pubInputs.length > 3
-      ? ethers.utils.getAddress("0x" + BigInt(pubInputs![3]).toString(16))
+      ? ethers.utils.getAddress(
+          "0x" + BigInt(pubInputs![3]).toString(16).padStart(40, "0")
+        )
       : undefined;
   const degree =
     pubInputs && pubInputs.length > 1

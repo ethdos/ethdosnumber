@@ -61,7 +61,7 @@ const Share: NextPage = () => {
   const rawAddress =
     originalPubInputs && originalPubInputs.length > 3
       ? ethers.utils.getAddress(
-          "0x" + BigInt(originalPubInputs![3]).toString(16)
+          "0x" + BigInt(originalPubInputs![3]).toString(16).padStart(40, "0")
         )
       : undefined;
   const degree =
